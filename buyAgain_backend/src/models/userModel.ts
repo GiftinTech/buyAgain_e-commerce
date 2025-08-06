@@ -1,5 +1,12 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import crypto from 'crypto';
+import { Types, Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
+import bcrypt from 'bcrypt';
+
+interface CartItem {
+  productId: Types.ObjectId;
+  quantity: number;
+}
 
 interface IUser extends Document {
   name: string;
@@ -9,11 +16,35 @@ interface IUser extends Document {
   passwordConfirm?: string;
   passwordChangedAt?: Date;
   passwordResetToken?: string;
-  passwordExpires?: Date;
+  passwordResetExpires?: Date;
+  refreshToken?: string;
   active: boolean;
+  cart: CartItem[];
+
+  changedPasswordAfter(JWTTimestamp: number): boolean;
+  createPasswordResetToken(): string;
 }
 
-const userSchema = new mongoose.Schema<IUser>({
+const cartItemSchema = new Schema<CartItem>(
+  {
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+      default: 1,
+    },
+  },
+  {
+    _id: false, // prevents Mongoose from creating _id for each cart item
+  },
+);
+
+const userSchema = new Schema<IUser>({
   name: {
     type: String,
     required: [true, 'Please tell us your name.'],
@@ -59,9 +90,14 @@ const userSchema = new mongoose.Schema<IUser>({
       message: 'Your passwords do not match.',
     },
   },
+  cart: [cartItemSchema],
   passwordChangedAt: Date,
   passwordResetToken: String,
-  passwordExpires: Date,
+  passwordResetExpires: Date,
+  refreshToken: {
+    type: String,
+    select: false,
+  },
   active: {
     type: Boolean,
     default: true,
@@ -69,6 +105,59 @@ const userSchema = new mongoose.Schema<IUser>({
   },
 });
 
-const User: Model<IUser> = mongoose.model<IUser>('User', userSchema);
+// MIDDLEWARE
+// middleware to hash password before saving to DB
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next(); // only hash if pwd was modified(changed)
+
+  this.password = await bcrypt.hash(this.password, 12); // hash pwd with cost of 12. NB: the higher the cost, the higher the running time
+
+  this.passwordConfirm = undefined; // Don't save confirm field in DB
+  next();
+});
+
+// Set passwordChangedAt slightly in the past to prevent JWT issues
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = new Date(Date.now() - 1000);
+  next();
+});
+
+// Filter out inactive users from all find queries
+userSchema.pre(/^find/, function (this: Query<any, IUser>, next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
+
+// METHODS
+// Check if user changed password after token was issued
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = Math.floor(
+      this.passwordChangedAt.getTime() / 1000,
+    );
+
+    return JWTTimestamp < changedTimestamp; // true means password was changed after token
+  }
+
+  return false; // Password not changed
+};
+
+// Generate password reset token and expiry
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex'); // Create raw reset token
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex'); // Save hashed token in DB
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 mins expiry
+
+  return resetToken; // Send raw token via email/SMS/link
+};
+
+const User: Model<IUser> = model<IUser>('User', userSchema);
 
 export default User;
