@@ -12,7 +12,7 @@ import Email from '../utils/email';
 const jwtSecret = process.env.JWT_SECRET as string;
 
 // signup new customers
-export const signup = catchAsync(
+const signup = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const newUser = await User.create({
       name: req.body.name,
@@ -32,7 +32,7 @@ export const signup = catchAsync(
 );
 
 // login customers
-export const login = catchAsync(
+const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { email, password } = req.body;
 
@@ -54,9 +54,8 @@ export const login = catchAsync(
 
 // refresh token handler
 // @desc    Issue a new access token using a valid refresh token
-// @route   POST /api/v1/auth/refresh-token
 // @access  Public (but requires refreshToken cookie)
-export const refreshToken = catchAsync(
+const refreshToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     // 1. Get refresh token from cookies
     const token = req.cookies.refreshToken;
@@ -89,7 +88,7 @@ export const refreshToken = catchAsync(
 );
 
 // logout customers
-export const logout = catchAsync(
+const logout = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     res.cookie('jwt', 'loggedout', {
       expires: new Date(Date.now() + 10 * 1000),
@@ -100,7 +99,7 @@ export const logout = catchAsync(
 );
 
 // protected routes
-export const protectRoute = catchAsync(
+const protectRoute = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     // i. get token and check if it's in the req.headers
     let token;
@@ -146,7 +145,7 @@ export const protectRoute = catchAsync(
 );
 
 // MW to restrict route access to specific user roles
-export const restrictTo = (...roles: string[]) => {
+const restrictTo = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user?.role))
       return next(
@@ -158,7 +157,7 @@ export const restrictTo = (...roles: string[]) => {
 };
 
 // forgot password handler
-export const forgotPassword = catchAsync(
+const forgotPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     // i. get user based on POSTED email
     const user = await User.findOne({ email: req.body.email });
@@ -198,7 +197,7 @@ export const forgotPassword = catchAsync(
 );
 
 // resetPAssword handler
-export const resetPassword = catchAsync(
+const resetPassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     // i. get user based on the token
     const hashedToken = crypto
@@ -230,7 +229,7 @@ export const resetPassword = catchAsync(
 );
 
 // update password handler
-export const updatePassword = catchAsync(
+const updatePassword = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     // i. get user from collection
     const user = await User.findById(req.user?.id).select('+password');
@@ -258,3 +257,15 @@ export const updatePassword = catchAsync(
     createSendToken(user, 200, req, res);
   },
 );
+
+export const authController = {
+  signup,
+  login,
+  refreshToken,
+  logout,
+  protectRoute,
+  restrictTo,
+  forgotPassword,
+  resetPassword,
+  updatePassword,
+};
