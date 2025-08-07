@@ -8,7 +8,8 @@ interface CartItem {
   quantity: number;
 }
 
-interface IUser extends Document {
+export interface IUser extends Document {
+  _id: string;
   name: string;
   email: string;
   role: 'user' | 'admin' | 'seller';
@@ -23,6 +24,7 @@ interface IUser extends Document {
 
   changedPasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
+  correctPassword(candidatePwd: string, userPwd: string): boolean;
 }
 
 const cartItemSchema = new Schema<CartItem>(
@@ -131,6 +133,14 @@ userSchema.pre(/^find/, function (this: Query<any, IUser>, next) {
 });
 
 // METHODS
+// Compares the entered password with the user's hashed password in the DB
+userSchema.methods.correctPassword = async function (
+  candidatePwd: string,
+  userPwd: string,
+) {
+  return await bcrypt.compare(candidatePwd, userPwd);
+};
+
 // Check if user changed password after token was issued
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp: number) {
   if (this.passwordChangedAt) {

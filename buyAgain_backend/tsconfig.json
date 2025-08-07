@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "typeRoots": ["./node_modules/@types", "./types"]
   },
-  "include": ["src/**/*", "app.ts", "server.ts"]
+  "include": ["src/**/*", "app.ts", "server.ts", "types"]
 }
