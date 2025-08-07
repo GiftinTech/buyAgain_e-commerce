@@ -1,15 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { IUser } from '../models/userModel';
-import AppError from '../utils/appError';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN;
 // Ensure JWT config variables are present, else throw server error
 if (!jwtSecret || !jwtExpiresIn)
-  throw new AppError(
+  throw new Error(
     'JWT_SECRET or JWT_EXPIRES_IN is not defined in environment variables',
-    500,
   );
 
 // Helper to sign JWT token with user ID
@@ -35,7 +33,7 @@ export const createSendToken = (
   res.cookie('jwt', token, {
     expires: new Date(Date.now() + jwtCookieExpiresIn * 24 * 60 * 60 * 1000),
     httpOnly: true, // Cannot be accessed via JavaScript
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+    secure: process.env.NODE_ENV === 'production',
   });
 
   // Hide pwd from output

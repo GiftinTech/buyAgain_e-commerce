@@ -1,5 +1,6 @@
 // core modules
 import path from 'path';
+console.log('🧪 Starting app.ts');
 
 // third-party modules
 import express, { NextFunction, Request, Response } from 'express';
@@ -15,15 +16,16 @@ import cookieParser from 'cookie-parser';
 
 // custom modules
 import authRouter from './routes/authRoutes';
-import userRouter from './routes/userRoutes';
-import productRouter from './routes/productRoutes';
-import reviewRouter from './routes/reviewRoutes';
-import orderRouter from './routes/orderRoutes';
+// import userRouter from './routes/userRoutes';
+// import productRouter from './routes/productRoutes';
+// import reviewRouter from './routes/reviewRoutes';
+// import orderRouter from './routes/orderRoutes';
 import globalErrorHandler from './controllers/errorController';
 import AppError from './utils/appError';
 
 // start the express app
 const app = express();
+console.log('✅ Express initialized');
 
 app.enable('trust proxy'); // Allow Express to trust reverse proxy headers (e.g., for Heroku/Render)
 
@@ -62,7 +64,8 @@ app.use('/api', limiter);
 // Body parser: read data from body into req.body
 app.use(express.json({ limit: '10kb' })); // limits the amount of data that comes in body
 
-app.use(express.urlencoded({ extended: true, limit: '10kb' })); // Parse form data (x-www-form-urlencoded) with a size limit
+// Parse form data (x-www-form-urlencoded) with a size limit
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 app.use(cookieParser()); // Parse cookies from incoming requests
 
@@ -85,30 +88,34 @@ app.use(compression());
 // Hide Express version info
 app.disable('x-powered-by');
 
-// Hide Express version info
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
-    return next();
-  }
-  res.redirect('https://' + req.headers.host + req.url);
-});
+// convert htpps to https in prod
+if (process.env.NODE_ENV === 'production') {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      return next();
+    }
+    res.redirect('https://' + req.headers.host + req.url);
+  });
+}
+
+// middleware function to handle unknown routes
+const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+};
 
 app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀️'));
 
 // Mount all routers
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/user', userRouter);
-app.use('/api/v1/product', productRouter);
-app.use('/api/v1/review', reviewRouter);
-app.use('/api/v1/order', orderRouter);
+// //app.use('/api/v1/user', userRouter);
+// // app.use('/api/v1/product', productRouter);
+// // app.use('/api/v1/review', reviewRouter);
+// // app.use('/api/v1/order', orderRouter);
 
-// handle unknown routes
-app.all('*', (req: Request, res: Response, next: NextFunction) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// use MW func to handle unknown routes
+app.use(notFoundHandler);
 
 // globalErrorHandler to catch all errors in the app
-app.use;
-globalErrorHandler;
+app.use(globalErrorHandler);
 
 export default app;

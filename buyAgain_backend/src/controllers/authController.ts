@@ -5,11 +5,14 @@ import { NextFunction, Request, Response } from 'express';
 import User from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
-import { DecodedToken } from './../../types/token.d';
+import { DecodedToken } from '../../types/token';
 import { createSendToken, signToken } from '../utils/jwtHelpers';
 import Email from '../utils/email';
+import { AuthRequest } from '../../types/express';
 
 const jwtSecret = process.env.JWT_SECRET as string;
+
+if (!jwtSecret) throw new Error('ERROR:❌ jwtSecret not found');
 
 // signup new customers
 const signup = catchAsync(
@@ -22,7 +25,7 @@ const signup = catchAsync(
     });
 
     // send welcome email
-    const url = `${req.protocol}://${req.get('host')}/users/me`;
+    const url = `${req.protocol}://${req.get('host')}/api/v1/users/me`;
     console.log(url);
     const email = new Email(newUser, url);
     await email.sendWelcome(req.body.emailTemplate);
@@ -100,7 +103,7 @@ const logout = catchAsync(
 
 // protected routes
 const protectRoute = catchAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
     // i. get token and check if it's in the req.headers
     let token;
     if (
@@ -146,7 +149,7 @@ const protectRoute = catchAsync(
 
 // MW to restrict route access to specific user roles
 const restrictTo = (...roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user?.role))
       return next(
         new AppError('You do not have permission to perform this action.', 403),
@@ -230,7 +233,7 @@ const resetPassword = catchAsync(
 
 // update password handler
 const updatePassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
     // i. get user from collection
     const user = await User.findById(req.user?.id).select('+password');
 
@@ -258,7 +261,7 @@ const updatePassword = catchAsync(
   },
 );
 
-export const authController = {
+export default {
   signup,
   login,
   refreshToken,
