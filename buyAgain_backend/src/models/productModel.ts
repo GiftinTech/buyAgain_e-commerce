@@ -1,49 +1,7 @@
 // src/models/productModel.ts
 import { Schema, Types, Model, model, Document } from 'mongoose';
 import slugify from 'slugify';
-
-// Define the IReview interface for embedded reviews
-interface IReview {
-  user_id: Types.ObjectId;
-  review?: string;
-  rating: number;
-  createdAt: Date;
-}
-
-// Defines the schema for a single review.
-const reviewSchema = new Schema<IReview>(
-  {
-    user_id: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'A review must belong to a user.'],
-    },
-    review: {
-      type: String,
-      trim: true,
-      maxlength: [
-        200,
-        'A product review must have less than or equal to 200 characters.',
-      ],
-    },
-    rating: {
-      type: Number,
-      default: 4.5,
-      min: [1, 'Rating must be above 1.0'],
-      max: [5, 'Rating must be below 5.0'],
-      set: (val: number) => Math.round(val * 10) / 10,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now(),
-    },
-  },
-  {
-    _id: false,
-    toJSON: { virtuals: true }, // Ensure virtuals are included if you add them
-    toObject: { virtuals: true },
-  },
-);
+import reviewSchema, { IReview } from './reviewModel';
 
 // Define the IProduct interface, ensuring it extends Document
 export interface IProduct extends Document {
@@ -116,6 +74,7 @@ const productSchema = new Schema<IProduct>(
         },
         message: 'Discount price {{VALUE}} must be below the regular price.',
       },
+      default: 0,
     },
     rating: {
       type: Number,

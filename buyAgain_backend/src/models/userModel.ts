@@ -2,17 +2,7 @@ import crypto from 'crypto';
 import { Types, Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-
-interface CartItemDoc extends Document {
-  productId: Types.ObjectId;
-  name: string;
-  price: number;
-  quantity: number;
-  total: number; // Calculated field
-  discountedPercentage: number; // Calculated field
-  discountedTotal: number; // Calculated field
-  thumbnail: string;
-}
+import cartItemSchema, { CartItemDoc } from './cartModel';
 
 export interface IUser extends Document {
   _id: string;
@@ -33,120 +23,71 @@ export interface IUser extends Document {
   correctPassword(candidatePwd: string, userPwd: string): Promise<boolean>;
 }
 
-const cartItemSchema = new Schema<CartItemDoc>(
+const userSchema = new Schema<IUser>(
   {
-    productId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
+    name: {
+      type: String,
+      required: [true, 'Please tell us your name.'],
     },
-    name: String,
-    price: Number,
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
-      default: 1,
+    email: {
+      type: String,
+      required: [true, 'Please enter your email.'],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email'],
     },
-    total: Number,
-    discountedPercentage: {
-      type: Number,
-      default: 0,
-      // This setter calculates the actual discount amount based on the total.
-      set: function (this: CartItemDoc, val: number): number {
-        return val;
+    role: {
+      type: String,
+      enum: ['user', 'admin', 'seller'],
+      default: 'user',
+    },
+    password: {
+      type: String,
+      required: [true, 'Please enter a strong password.'],
+      validate: {
+        validator: function (val: string): boolean {
+          return validator.isStrongPassword(val, {
+            minLength: 8,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1,
+          });
+        },
+        message:
+          'Password must be 8 characters or more: include uppercase, lowercase, number and symbol.',
+      },
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, 'Please confirm your password.'],
+      validate: {
+        validator: function (this: IUser, el: string): boolean {
+          return el === this.password;
+        },
+        message: 'Your passwords do not match.',
       },
     },
-    discountedTotal: {
-      type: Number,
-      // This setter calculates the final price after discount.
-      set: function (this: CartItemDoc, val: number): number {
-        const discountAmount = (this.total * this.discountedPercentage) / 100;
-        return this.total - discountAmount;
-      },
+    cart: [cartItemSchema],
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+    refreshToken: {
+      type: String,
+      select: false,
     },
-    thumbnail: String,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
   },
   {
-    _id: false,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: false }, // omit all virtuals, including the id
+    toObject: { virtuals: false },
   },
 );
-
-// Virtual for `total` on CartItem.
-// It will be calculated when the document is retrieved.
-cartItemSchema.virtual('calculatedTotal').get(function (this: CartItemDoc) {
-  return this.price * this.quantity;
-});
-
-// Virtual for `discountedTotal` on CartItem.
-cartItemSchema.virtual('calculatedDiscountedTotal').get(function (
-  this: CartItemDoc,
-) {
-  const total = this.price * this.quantity;
-  const discountAmount = (total * this.discountedPercentage) / 100;
-  return total - discountAmount;
-});
-
-const userSchema = new Schema<IUser>({
-  name: {
-    type: String,
-    required: [true, 'Please tell us your name.'],
-  },
-  email: {
-    type: String,
-    required: [true, 'Please enter your email.'],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email'],
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'seller'],
-  },
-  password: {
-    type: String,
-    required: [true, 'Please enter a strong password.'],
-    validate: {
-      validator: function (val: string): boolean {
-        return validator.isStrongPassword(val, {
-          minLength: 8,
-          minLowercase: 1,
-          minUppercase: 1,
-          minNumbers: 1,
-          minSymbols: 1,
-        });
-      },
-      message:
-        'Password must be 8 characters or more: include uppercase, lowercase, number and symbol.',
-    },
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, 'Please confirm your password.'],
-    validate: {
-      validator: function (this: IUser, el: string): boolean {
-        return el === this.password;
-      },
-      message: 'Your passwords do not match.',
-    },
-  },
-  cart: [cartItemSchema],
-  passwordChangedAt: Date,
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  refreshToken: {
-    type: String,
-    select: false,
-  },
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-});
 
 // MIDDLEWARE
 // middleware to hash password before saving to DB

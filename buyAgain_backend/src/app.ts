@@ -15,7 +15,7 @@ import cookieParser from 'cookie-parser';
 
 // custom modules
 import authRouter from './routes/authRoutes';
-// import userRouter from './routes/userRoutes';
+import userRouter from './routes/userRoutes';
 import productRouter from './routes/productRoutes';
 // import reviewRouter from './routes/reviewRoutes';
 // import orderRouter from './routes/orderRoutes';
@@ -126,7 +126,7 @@ app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀�
 
 // Mount all routers
 app.use('/api/v1/auth', authRouter);
-// //app.use('/api/v1/user', userRouter);
+app.use('/api/v1/users/me', userRouter);
 app.use('/api/v1/product', productRouter);
 // // app.use('/api/v1/review', reviewRouter);
 // // app.use('/api/v1/order', orderRouter);

@@ -14,6 +14,58 @@ const jwtSecret = process.env.JWT_SECRET as string;
 
 if (!jwtSecret) throw new Error('ERROR:❌ jwtSecret not found');
 
+// MW to assign user role for development testing
+const assignRole = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    if (req.body.test_role && process.env.NODE_ENV === 'development')
+      req.body.role = req.body.test_role;
+    else req.body.role = 'user';
+
+    delete req.body.test_role;
+
+    next();
+  },
+);
+
+// MW to check if auth/logged in user is admin
+const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    return next(new AppError('Access denied: You are not an admin.', 403));
+  }
+};
+
+// MW for admin to delegate roles
+const adminDelegateRole = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    // i. get user id and newRole
+    const { id } = req.params;
+    const { newRole } = req.body;
+
+    // ii. validate that the new role is one of the allowed roles
+    const validRoles = ['user', 'admin', 'seller'];
+    if (!validRoles.includes(newRole))
+      return next(new AppError('Invalid role specified.', 400));
+
+    // iii. find user and update their role
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role: newRole },
+      {
+        new: true, // return the updated doc
+        runValidators: true, // run userModel.role validators
+      },
+    );
+
+    // iv. check if user was found and updated
+    if (!updatedUser) return next(new AppError('User not found', 404));
+
+    // v. send response
+    createSendToken(updatedUser, 200, req, res);
+  },
+);
+
 // signup new customers
 const signup = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -22,6 +74,7 @@ const signup = catchAsync(
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      role: req.body.role,
     });
 
     // send welcome email
@@ -50,7 +103,6 @@ const login = catchAsync(
       return next(new AppError('Incorrect email or password.', 401));
 
     /// iii. if everything is ok, send token to client
-
     createSendToken(user, 200, req, res);
   },
 );
@@ -82,7 +134,7 @@ const refreshToken = catchAsync(
     // 4. Issue new access token
     const newAccessToken = signToken(user._id);
 
-    console.log(newAccessToken)
+    console.log(newAccessToken);
 
     // 5. Send the new access token in response
     res.status(200).json({
@@ -99,7 +151,10 @@ const logout = catchAsync(
       expires: new Date(Date.now() + 10 * 1000),
       httpOnly: true,
     });
-    res.status(200).json({ status: 'success', message: 'You have been logged out successfully.' });
+    res.status(200).json({
+      status: 'success',
+      message: 'You have been logged out successfully.',
+    });
   },
 );
 
@@ -179,9 +234,11 @@ const forgotPassword = catchAsync(
     try {
       const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/resetPassword/${resetToken}`;
       // send resetURL user's email
-      const email = new Email(user, resetURL)
+      const email = new Email(user, resetURL);
       // use this for postman testing
-      await email.sendPasswordReset(`Hello, ${user.name}. Click <a href=\"${resetURL}\">here</a> to reset your password.`);
+      await email.sendPasswordReset(
+        `Hello, ${user.name}. Click <a href=\"${resetURL}\">here</a> to reset your password.`,
+      );
 
       // send this to frontend
       //await email.sendPasswordReset(req.body.emailTemplate);
@@ -268,6 +325,9 @@ const updatePassword = catchAsync(
 );
 
 export default {
+  assignRole,
+  requireAdmin,
+  adminDelegateRole,
   signup,
   login,
   refreshToken,

@@ -3,7 +3,7 @@ import authController from '../controllers/authController';
 
 const router = express.Router();
 
-router.post('/signup', authController.signup);
+router.post('/signup', authController.assignRole, authController.signup);
 router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
@@ -13,5 +13,10 @@ router.use(authController.protectRoute); // Protect everything below
 
 router.post('/logout', authController.logout);
 router.patch('/updatePassword', authController.updatePassword);
+router.patch(
+  '/:id/updateRole',
+  authController.requireAdmin,
+  authController.adminDelegateRole,
+); // admin delegate role route
 
 export default router;
