@@ -1,6 +1,6 @@
 import { Types, Schema, Document, model } from 'mongoose';
 
-export interface CartDoc extends Document {
+export interface ICart extends Document {
   product: Types.ObjectId;
   user: Types.ObjectId;
   name: string;
@@ -10,7 +10,7 @@ export interface CartDoc extends Document {
   discountPercentage: number;
 }
 
-const cartSchema = new Schema<CartDoc>(
+const cartSchema = new Schema<ICart>(
   {
     product: {
       type: Schema.Types.ObjectId,
@@ -42,12 +42,12 @@ const cartSchema = new Schema<CartDoc>(
 
 // Virtual for `total` on CartItem.
 // It will be calculated when the document is retrieved.
-cartSchema.virtual('total').get(function (this: CartDoc) {
+cartSchema.virtual('total').get(function (this: ICart) {
   return this.price * this.quantity;
 });
 
 // Virtual for `discountedTotal` on CartItem.
-cartSchema.virtual('discountedTotal').get(function (this: CartDoc) {
+cartSchema.virtual('discountedTotal').get(function (this: ICart) {
   const total = this.price * this.quantity;
   const discountAmount = (total * this.discountPercentage) / 100;
   return total - discountAmount;

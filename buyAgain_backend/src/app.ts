@@ -19,6 +19,7 @@ import userRouter from './routes/userRoutes';
 import productRouter from './routes/productRoutes';
 // import reviewRouter from './routes/reviewRoutes';
 import orderRouter from './routes/orderRoutes';
+import cartRouter from './routes/cartRoutes';
 import globalErrorHandler from './controllers/errorController';
 import AppError from './utils/appError';
 
@@ -130,6 +131,7 @@ app.use('/api/v1/users/me', userRouter);
 app.use('/api/v1/products', productRouter);
 // // app.use('/api/v1/review', reviewRouter);
 app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/cart', cartRouter);
 
 // use MW func to handle unknown routes
 app.use(notFoundHandler);
