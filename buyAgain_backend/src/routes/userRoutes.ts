@@ -4,6 +4,13 @@ import authController from '../controllers/authController';
 
 const router = express.Router();
 
-router.route('/').get(authController.protectRoute, authController.restrictTo('admin'), userController.getAllUsers);
+// Protected Route
+router.use(authController.protectRoute);
+
+router
+  .route('/')
+  .get(authController.restrictTo('admin'), userController.getAllUsers);
+
+router.route('/me').get(userController.getMe, userController.getUser);
 
 export default router;

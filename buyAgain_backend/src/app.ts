@@ -18,7 +18,7 @@ import authRouter from './routes/authRoutes';
 import userRouter from './routes/userRoutes';
 import productRouter from './routes/productRoutes';
 // import reviewRouter from './routes/reviewRoutes';
-// import orderRouter from './routes/orderRoutes';
+import orderRouter from './routes/orderRoutes';
 import globalErrorHandler from './controllers/errorController';
 import AppError from './utils/appError';
 
@@ -127,9 +127,9 @@ app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀�
 // Mount all routers
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users/me', userRouter);
-app.use('/api/v1/product', productRouter);
+app.use('/api/v1/products', productRouter);
 // // app.use('/api/v1/review', reviewRouter);
-// // app.use('/api/v1/order', orderRouter);
+app.use('/api/v1/orders', orderRouter);
 
 // use MW func to handle unknown routes
 app.use(notFoundHandler);

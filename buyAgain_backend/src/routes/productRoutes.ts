@@ -4,15 +4,23 @@ import productController from '../controllers/productController';
 
 const router = express.Router();
 
+// Unprotected and Unrestricted Routes
 router
   .route('/')
   .get(productController.getAllProducts)
-  .post(
-    authController.protectRoute,
-    authController.restrictTo('seller'),
-    productController.addProduct,
-  ); // Only the auth seller can add a product
+router
+  .route('/:id')
+  .get(productController.getOneProduct)
 
-router.route('/:id').get(productController.getOneProduct);
+
+// Protected and Restricted Routes
+router.use(
+  authController.protectRoute,
+  authController.restrictTo('seller', 'admin'),
+);
+
+router.route('/').post(productController.addProduct);
+router.route('/:id').put(productController.updateProduct).patch(productController.updateProduct)
+  .delete(productController.deleteProduct);
 
 export default router;

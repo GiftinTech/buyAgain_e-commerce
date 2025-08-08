@@ -1,4 +1,4 @@
-import { Schema, Types } from 'mongoose';
+import { model, Schema, Types, Document } from 'mongoose';
 
 // Define the IOrderItems interface for embedded reviews
 export interface IOrderItems {
@@ -25,10 +25,9 @@ const orderItemsSchema = new Schema<IOrderItems>({
   thumbnail: String,
 });
 
-export interface IOrderSchema {
+export interface IOrder extends Document {
   product: Types.ObjectId;
   user: Types.ObjectId;
-  price: number;
   paid: boolean;
   createdAt: Date;
   status: String;
@@ -37,7 +36,7 @@ export interface IOrderSchema {
 }
 
 // Defines the order schema that shows the order records for all successful | failed orders.
-const orderSchema = new Schema<IOrderSchema>(
+const orderSchema = new Schema<IOrder>(
   {
     product: {
       type: Schema.Types.ObjectId,
@@ -48,10 +47,6 @@ const orderSchema = new Schema<IOrderSchema>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Order must belong to a user!'],
-    },
-    price: {
-      type: Number,
-      required: [true, 'Order must have a price.'],
     },
     paid: {
       type: Boolean,
@@ -83,4 +78,15 @@ const orderSchema = new Schema<IOrderSchema>(
   },
 );
 
-export default orderSchema;
+// virtual property to calculate the total price
+orderSchema.virtual('totalPrice').get(function () {
+  if (!this.orderItems) return 0;
+
+  return this.orderItems.reduce((total, item) => {
+    return total + item.priceAtTimeOfOrder * item.quantity;
+  }, 0);
+});
+
+const Order = model('Order', orderSchema);
+
+export default Order;

@@ -1,7 +1,10 @@
+import { NextFunction, Response } from 'express';
+
 import { Model, Document, Query } from 'mongoose';
 import catchAsync from '../utils/catchAsync';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
+import { AuthRequest } from '../../types/express';
 
 const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {
@@ -20,9 +23,18 @@ const getAll = <T extends Document>(
   dataKey: string,
   selectOpt?: string,
 ) =>
-  catchAsync(async (req, res, next) => {
+  catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    // Initialize filter as a simple object
     let filter = {};
-    if (req.params.productId) filter = { product: req.params.productId };
+
+    // Check if the user is a regular user and set the filter accordingly
+    if (req.user && req.user.role === 'user') {
+      filter = { user: req.user._id };
+    }
+
+    // check for productId
+    if (req.params.productId)
+      filter = { ...filter, product: req.params.productId };
 
     let query: Query<T[], T> = Model.find(filter) as Query<T[], T>;
 
@@ -68,8 +80,42 @@ const getOne = <T extends Document>(
     });
   });
 
+const updateOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
+  catchAsync(async (req, res, next) => {
+    const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!data)
+      return next(new AppError(`no ${dataKey} found with that Id`, 404));
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        [dataKey]: data,
+      },
+    });
+  });
+
+const deleteOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
+  catchAsync(async (req, res, next) => {
+    const data = await Model.findByIdAndDelete(req.params.id);
+
+    if (!data)
+      return next(new AppError(`no ${dataKey} found with that Id`, 404));
+
+    res.status(200).json({
+      status: 'success',
+      message: `${dataKey} deleted successfully.`,
+      data: null,
+    });
+  });
+
 export default {
   getAll,
   getOne,
   createOne,
+  updateOne,
+  deleteOne,
 };
