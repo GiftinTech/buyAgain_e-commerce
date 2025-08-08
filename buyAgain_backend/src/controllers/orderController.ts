@@ -1,12 +1,13 @@
+import { Response, NextFunction } from 'express';
+
 import Order, { IOrder } from '../models/orderModel';
 import factory from './controllerFactory';
+import { AuthRequest } from '../types';
 
 // MW to set the filter for user-specific data
-const setUserFilter = (req, res, next) => {
+const setUserFilter = (req: AuthRequest, res: Response, next: NextFunction) => {
   // If the user is logged in, set a filter for their ID.
-  if (req.user) {
-    req.filter = { user: req.user.id };
-  }
+  req.filter = req.user ? { user: req.user._id } : {};
   next();
 };
 

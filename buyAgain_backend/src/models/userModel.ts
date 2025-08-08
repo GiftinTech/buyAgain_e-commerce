@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import { Types, Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
-import cartItemSchema, { CartItemDoc } from './cartModel';
 
 export interface IUser extends Document {
   _id: string;
@@ -16,7 +15,6 @@ export interface IUser extends Document {
   passwordResetExpires?: Date;
   refreshToken?: string;
   active: boolean;
-  cart: Types.DocumentArray<CartItemDoc>;
 
   changedPasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
@@ -69,7 +67,6 @@ const userSchema = new Schema<IUser>(
         message: 'Your passwords do not match.',
       },
     },
-    cart: [cartItemSchema],
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,

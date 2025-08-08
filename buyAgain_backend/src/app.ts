@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
+import { xss } from 'express-xss-sanitizer';
 import hpp from 'hpp';
 import compression from 'compression';
 import cors from 'cors';
@@ -28,7 +28,7 @@ const app = express();
 app.set('trust proxy', 1); // Allow Express to trust reverse proxy headers (e.g., for Heroku/Render)
 app.get('/ip', (request, response) => {
   console.log(request.headers);
-	response.send(request.ip);
+  response.send(request.ip);
 });
 // GLOBAL MIDDLEWARES
 // Enable CORS for cross-origin requests
@@ -91,7 +91,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// Data sanitization against XSS
+// Sanitize all incoming requests against XSS
 app.use(xss());
 
 // Prevent parameter pollution

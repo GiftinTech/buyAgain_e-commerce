@@ -4,7 +4,7 @@ import { Model, Document, Query } from 'mongoose';
 import catchAsync from '../utils/catchAsync';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
-import { AuthRequest } from '../../types/express';
+import { AuthRequest } from '../types';
 
 const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {

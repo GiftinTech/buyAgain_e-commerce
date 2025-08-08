@@ -1,6 +1,6 @@
 import { model, Schema, Types, Document } from 'mongoose';
 
-// Define the IOrderItems interface for embedded reviews
+// Define the IOrderItems interface
 export interface IOrderItems {
   product: Types.ObjectId;
   quantity: number;
@@ -25,24 +25,28 @@ const orderItemsSchema = new Schema<IOrderItems>({
   thumbnail: String,
 });
 
+// Define the shipping address type
+interface IShippingAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+// Corrected IOrder interface
 export interface IOrder extends Document {
-  product: Types.ObjectId;
   user: Types.ObjectId;
   paid: boolean;
   createdAt: Date;
-  status: String;
-  shippingAddress: string[];
+  status: string;
+  shippingAddress: IShippingAddress;
   orderItems: Types.DocumentArray<IOrderItems>;
 }
 
-// Defines the order schema that shows the order records for all successful | failed orders.
+// Corrected order schema
 const orderSchema = new Schema<IOrder>(
   {
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: [true, 'Order must belong to a product!'],
-    },
     user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -50,11 +54,11 @@ const orderSchema = new Schema<IOrder>(
     },
     paid: {
       type: Boolean,
-      default: true, // for dev testing, in prod, set to false
+      default: true,
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     status: {
       type: String,
@@ -67,26 +71,22 @@ const orderSchema = new Schema<IOrder>(
       state: { type: String, required: true },
       zip: { type: String, required: true },
       country: { type: String, required: true },
-      required: [true, 'Please fill in all fields in your shipping address.'],
     },
     orderItems: [orderItemsSchema],
   },
   {
-    _id: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
 );
 
-// virtual property to calculate the total price
 orderSchema.virtual('totalPrice').get(function () {
   if (!this.orderItems) return 0;
-
   return this.orderItems.reduce((total, item) => {
     return total + item.priceAtTimeOfOrder * item.quantity;
   }, 0);
 });
 
-const Order = model('Order', orderSchema);
+const Order = model<IOrder>('Order', orderSchema);
 
 export default Order;

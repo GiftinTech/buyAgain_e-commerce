@@ -1,7 +1,7 @@
-// src/types/express.d.ts
 import { Request } from 'express';
-import { IUser } from '../../src/models/userModel';
+import { IUser } from '../models/userModel';
 
 export interface AuthRequest extends Request {
   user?: IUser;
+  filter?: { user: ObjectId } | {};
 }

@@ -1,11 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { IUser } from '../models/userModel';
+import { AuthRequest } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN;
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET as string;
-const refreshTokenExpiresIn: number = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
+const refreshTokenExpiresIn: number = Number(
+  process.env.REFRESH_TOKEN_EXPIRES_IN,
+);
 const jwtCookieExpiresIn: number = Number(process.env.JWT_COOKIE_EXPIRES_IN);
 // Ensure JWT config variables are present, else throw server error
 if (!jwtSecret || !jwtExpiresIn)
@@ -31,7 +34,7 @@ export const signRefreshToken = (id: string | number): string => {
 export const createSendToken = (
   user: IUser,
   statusCode: number,
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ) => {
   // 1. Sign both tokens

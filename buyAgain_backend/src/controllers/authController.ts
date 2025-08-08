@@ -5,10 +5,10 @@ import { NextFunction, Request, Response } from 'express';
 import User from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
-import { DecodedToken } from '../../types/token';
+import { DecodedToken } from '../types/token';
 import { createSendToken, signToken } from '../utils/jwtHelpers';
 import Email from '../utils/email';
-import { AuthRequest } from '../../types/express';
+import { AuthRequest } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 
