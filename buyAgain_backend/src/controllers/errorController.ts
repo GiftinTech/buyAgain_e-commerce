@@ -2,40 +2,34 @@ import { Request, Response, NextFunction } from 'express';
 import AppError from '../utils/appError';
 
 // Handles Mongoose "CastError" (e.g., invalid ObjectId)
-
 const handleCastErrorDB = (err: any): AppError => {
   const message = `Invalid ${err.path}: ${err.value}`;
   return new AppError(message, 400);
 };
 
 // Handles duplicate field errors in MongoDB (e.g., unique field conflicts)
-
 const handleDuplicateFieldsDB = (err: any): AppError => {
   const value = err.message.match(/(["'])(\\?.)*?\1/)?.[0];
   const message = `Duplicate field value: ${value}. Please use another value.`;
   return new AppError(message, 400);
 };
 
-// Handles Mongoose validation errors (e.g., missing required fields)
-
+// Handles Mongoose validation errors (e.g., missing required fields, password mismatch)
 const handleValidationError = (err: any): AppError => {
   const errors = Object.values(err.errors).map((el: any) => el.message);
   const message = `Invalid input data: ${errors.join('. ')}`;
-  return new AppError(message, 400);
+  return new AppError(message, 400); // Sets 400 status for validation failures
 };
 
 // Handles invalid JWT error
-
 const handleJWTError = (): AppError =>
   new AppError('Invalid token. Please log in again.', 401);
 
-//Handles expired JWT error
-
+// Handles expired JWT error
 const handleJWTExpiredError = (): AppError =>
   new AppError('Your token has expired. Please log in again.', 401);
 
 // Sends detailed error in development mode
-
 const sendErrorDev = (err: any, res: Response): void => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -46,7 +40,6 @@ const sendErrorDev = (err: any, res: Response): void => {
 };
 
 // Sends clean error response in production
-
 const sendErrorProd = (err: any, res: Response): void => {
   // For known, trusted (operational) errors, show the message
   if (err.isOperational) {
@@ -64,42 +57,42 @@ const sendErrorProd = (err: any, res: Response): void => {
   }
 };
 
-//  Global error handler middleware (registered in app.ts)
-
+// Global error handler middleware (registered in app.ts)
 const globalErrorHandler = (
   err: any,
   req: Request,
   res: Response,
   next: NextFunction,
 ): void => {
-  // Set default values
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
+  // This copies non-enumerable properties like 'name', 'message', 'stack'
+  let error = Object.create(Object.getPrototypeOf(err));
+  Object.getOwnPropertyNames(err).forEach((key) => {
+    (error as any)[key] = err[key];
+  });
 
-  // Development mode: send full error
-  if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+  // Set default values for cloned error
+  error.statusCode = error.statusCode || 500;
+  error.status = error.status || 'error';
 
-    // Production mode: sanitize output
-  } else if (process.env.NODE_ENV === 'production') {
-    // clone the error to avoid mutation
-    let error = Object.create(Object.getPrototypeOf(err));
-    Object.getOwnPropertyNames(err).forEach((key) => {
-      (error as any)[key] = err[key];
-    });
-
-    // Handle known error types
-    if (error.name === 'CastError') error = handleCastErrorDB(error);
-    if (error.code === 11000) error = handleDuplicateFieldsDB(error);
-    if (error.name === 'ValidationError') error = handleValidationError(error);
-    if (error.name === 'JsonWebTokenError') error = handleJWTError();
-    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
-
-    // Send final response
-    sendErrorProd(error, res);
+  // Handle known error types
+  if (error.name === 'CastError') {
+    error = handleCastErrorDB(error);
+  } else if (error.code === 11000) {
+    error = handleDuplicateFieldsDB(error);
+  } else if (error.name === 'ValidationError') {
+    error = handleValidationError(error);
+  } else if (error.name === 'JsonWebTokenError') {
+    error = handleJWTError();
+  } else if (error.name === 'TokenExpiredError') {
+    error = handleJWTExpiredError();
   }
 
-  next();
+  // Send the error response based on environment
+  if (process.env.NODE_ENV === 'development') {
+    sendErrorDev(error, res);
+  } else if (process.env.NODE_ENV === 'production') {
+    sendErrorProd(error, res);
+  }
 };
 
 export default globalErrorHandler;

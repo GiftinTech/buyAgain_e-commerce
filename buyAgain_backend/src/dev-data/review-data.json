@@ -1,0 +1,23 @@
+[
+    {
+        "_id": "5c8a34ed14eb5c17645c9108",
+        "review": "This is some awesome thinking!",
+        "rating": 3,
+        "createdAt": "2021-07-19,10:00",
+        "user_id": "5c8a1dfa2f8fb814b56fa181",
+    },
+    {
+         "_id": "5c8a355b14eb5c17645c9109",
+        "review": "What terrific math skills you're showing!",
+        "rating": 4,
+        "createdAt": "2021-07-19,10:00",
+        "user_id": "5c8a1dfa2f8fb814b56fa181",
+    },
+    {
+       "_id": "5c8a359914eb5c17645c910a",
+        "review": "You are an amazing writer!",
+        "rating": 2,
+        "createdAt": "2021-07-19,10:00",
+        "user_id": "5c8a1dfa2f8fb814b56fa181",
+    }
+]

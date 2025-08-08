@@ -1,6 +1,5 @@
 // core modules
 import path from 'path';
-console.log('🧪 Starting app.ts');
 
 // third-party modules
 import express, { NextFunction, Request, Response } from 'express';
@@ -17,7 +16,7 @@ import cookieParser from 'cookie-parser';
 // custom modules
 import authRouter from './routes/authRoutes';
 // import userRouter from './routes/userRoutes';
-// import productRouter from './routes/productRoutes';
+import productRouter from './routes/productRoutes';
 // import reviewRouter from './routes/reviewRoutes';
 // import orderRouter from './routes/orderRoutes';
 import globalErrorHandler from './controllers/errorController';
@@ -25,22 +24,27 @@ import AppError from './utils/appError';
 
 // start the express app
 const app = express();
-console.log('✅ Express initialized');
 
-app.enable('trust proxy'); // Allow Express to trust reverse proxy headers (e.g., for Heroku/Render)
-
+app.set('trust proxy', 1); // Allow Express to trust reverse proxy headers (e.g., for Heroku/Render)
+app.get('/ip', (request, response) => {
+  console.log(request.headers);
+	response.send(request.ip);
+});
 // GLOBAL MIDDLEWARES
 // Enable CORS for cross-origin requests
 app.use(cors());
 
-const corsOptions = {
-  origin: ['http://localhost:5173', 'https://buyAgain.vercel.app'], // allowed origins
-  credentials: true, // allow cookies/auth headers
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // allowed headers
-};
+if (process.env.NODE_ENV === 'develpment') app.options('*', cors());
+else if (process.env.NODE_ENV === 'production') {
+  const corsOptions = {
+    origin: ['http://localhost:5173', 'https://buyAgain.vercel.app'], // allowed origins
+    credentials: true, // allow cookies/auth headers
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // allowed headers
+  };
 
-app.use(cors(corsOptions));
+  app.use(cors(corsOptions));
+}
 
 // Serve static files in public/
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,6 +62,8 @@ const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false,
 });
 app.use('/api', limiter);
 
@@ -68,6 +74,19 @@ app.use(express.json({ limit: '10kb' })); // limits the amount of data that come
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 app.use(cookieParser()); // Parse cookies from incoming requests
+
+// Custom MW to make req.query mutable and writable
+// b/c express-mongo-sanitize needs req.query to be writable, but Express v5 makes it read-only. The MW makes req.query writable.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const originalQuery = req.query;
+  Object.defineProperty(req, 'query', {
+    value: { ...originalQuery },
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+  next();
+});
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -108,7 +127,7 @@ app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀�
 // Mount all routers
 app.use('/api/v1/auth', authRouter);
 // //app.use('/api/v1/user', userRouter);
-// // app.use('/api/v1/product', productRouter);
+app.use('/api/v1/product', productRouter);
 // // app.use('/api/v1/review', reviewRouter);
 // // app.use('/api/v1/order', orderRouter);
 

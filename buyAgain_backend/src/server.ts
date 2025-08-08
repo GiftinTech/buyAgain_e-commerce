@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import app from './app';
 import AppError from './utils/appError';
-import listEndpoints from 'express-list-endpoints';
+//import listEndpoints from 'express-list-endpoints';
 const databaseUri = process.env.DATABASE;
 const databasePwd = process.env.DATABASE_PASSWORD;
 const port = process.env.PORT || 3000;
@@ -17,10 +17,13 @@ const DB = databaseUri.replace('<db_password>', databasePwd);
 const start = async () => {
   try {
     await mongoose.connect(DB);
+    console.log('-------------------------------');
     console.log('DB connection Successful ✅');
+    console.log('-------------------------------');
     const server = app.listen(port, () => {
       console.log(`Server running on port ${port}...`);
-      console.log('All my Endpoints:', listEndpoints(app));
+      console.log('-------------------------------');
+      // console.log('All my Endpoints:', listEndpoints(app));
     });
   } catch (err) {
     console.error('❌DB connection error:', err);

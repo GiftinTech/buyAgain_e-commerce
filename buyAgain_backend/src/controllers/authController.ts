@@ -82,6 +82,8 @@ const refreshToken = catchAsync(
     // 4. Issue new access token
     const newAccessToken = signToken(user._id);
 
+    console.log(newAccessToken)
+
     // 5. Send the new access token in response
     res.status(200).json({
       status: 'success',
@@ -97,7 +99,7 @@ const logout = catchAsync(
       expires: new Date(Date.now() + 10 * 1000),
       httpOnly: true,
     });
-    res.status(200).json({ status: 'success' });
+    res.status(200).json({ status: 'success', message: 'You have been logged out successfully.' });
   },
 );
 
@@ -177,8 +179,12 @@ const forgotPassword = catchAsync(
     try {
       const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/resetPassword/${resetToken}`;
       // send resetURL user's email
-      const email = new Email(user, resetURL);
-      await email.sendPasswordReset(req.body.emailTemplate);
+      const email = new Email(user, resetURL)
+      // use this for postman testing
+      await email.sendPasswordReset(`Hello, ${user.name}. Click <a href=\"${resetURL}\">here</a> to reset your password.`);
+
+      // send this to frontend
+      //await email.sendPasswordReset(req.body.emailTemplate);
 
       res.status(200).json({
         status: 'success',

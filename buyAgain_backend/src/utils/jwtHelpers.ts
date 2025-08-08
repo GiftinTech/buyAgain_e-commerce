@@ -4,6 +4,9 @@ import { IUser } from '../models/userModel';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN;
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET as string;
+const refreshTokenExpiresIn: number = Number(process.env.REFRESH_TOKEN_EXPIRES_IN);
+const jwtCookieExpiresIn: number = Number(process.env.JWT_COOKIE_EXPIRES_IN);
 // Ensure JWT config variables are present, else throw server error
 if (!jwtSecret || !jwtExpiresIn)
   throw new Error(
@@ -17,6 +20,13 @@ export const signToken = (id: string | number): string => {
   });
 };
 
+// Helper to sign refresh token
+export const signRefreshToken = (id: string | number): string => {
+  return jwt.sign({ id }, refreshTokenSecret, {
+    expiresIn: refreshTokenExpiresIn as jwt.SignOptions['expiresIn'],
+  });
+};
+
 // Sends token in cookie and response, hides password from output
 export const createSendToken = (
   user: IUser,
@@ -24,25 +34,27 @@ export const createSendToken = (
   req: Request,
   res: Response,
 ) => {
-  const token = signToken(user._id);
+  // 1. Sign both tokens
+  const accessToken = signToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
 
-  // Convert cookie expiry (in days) to milliseconds
-  const jwtCookieExpiresIn: number = Number(process.env.JWT_COOKIE_EXPIRES_IN);
-
-  // Set token as HTTP-only cookie
-  res.cookie('jwt', token, {
+  // 2. Set cookie options
+  const cookieOptions = {
     expires: new Date(Date.now() + jwtCookieExpiresIn * 24 * 60 * 60 * 1000),
-    httpOnly: true, // Cannot be accessed via JavaScript
+    httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-  });
+  };
 
-  // Hide pwd from output
+  // 3. Send the refresh token in a cookie
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  // 4. Hide password from output
   user.password = undefined as any;
 
-  // Send response with token and user data
+  // 5. Send the access token in the JSON response
   res.status(statusCode).json({
     status: 'success',
-    token,
+    accessToken,
     data: {
       user,
     },
