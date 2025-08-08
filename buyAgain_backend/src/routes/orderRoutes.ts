@@ -24,5 +24,4 @@ router
   .put(orderController.updateOrder) // update full order details
   .patch(orderController.updateOrder); // update partial order details like order status
 
-
 export default router;

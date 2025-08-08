@@ -22,6 +22,7 @@ import orderRouter from './routes/orderRoutes';
 import cartRouter from './routes/cartRoutes';
 import globalErrorHandler from './controllers/errorController';
 import AppError from './utils/appError';
+import orderController from './controllers/orderController';
 
 // start the express app
 const app = express();
@@ -67,6 +68,13 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api', limiter);
+
+// The raw body is needed for Stripe's signature verification
+app.post(
+  '/api/v1/webhook',
+  express.raw({ type: 'application/json' }),
+  orderController.webhookCheckout,
+);
 
 // Body parser: read data from body into req.body
 app.use(express.json({ limit: '10kb' })); // limits the amount of data that comes in body
