@@ -21,7 +21,6 @@ const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
 const getAll = <T extends Document>(
   Model: Model<T>,
   dataKey: string,
-  selectOpt?: string,
 ) =>
   catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     // Initialize filter as a simple object
@@ -37,8 +36,6 @@ const getAll = <T extends Document>(
       filter = { ...filter, product: req.params.productId };
 
     let query: Query<T[], T> = Model.find(filter) as Query<T[], T>;
-
-    if (selectOpt) query = query.select(selectOpt);
 
     const features = new APIFeatures(query, req.query)
       .filter()

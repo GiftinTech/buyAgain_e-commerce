@@ -1,7 +1,87 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 
 import Cart, { ICart } from '../models/cartModel';
 import factory from './controllerFactory';
+import catchAsync from '../utils/catchAsync';
+import AppError from '../utils/appError';
+
+export const getUserCart = catchAsync(
+  async (req: any, res: Response, next: NextFunction) => {
+    const userId = req.user._id;
+
+    // Aggregation pipeline to calculate totals
+    const totalsPromise = Cart.aggregate([
+      { $match: { user: userId } },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'productDetails',
+        },
+      },
+      { $unwind: '$productDetails' },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: { $multiply: ['$quantity', '$productDetails.price'] },
+          },
+          discountedTotal: {
+            $sum: {
+              $multiply: [
+                '$quantity',
+                {
+                  $multiply: [
+                    '$productDetails.price',
+                    {
+                      $subtract: [
+                        1,
+                        {
+                          $divide: ['$productDetails.discountPercentage', 100],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+          totalProducts: { $sum: 1 },
+          totalQuantity: { $sum: '$quantity' },
+        },
+      },
+    ]);
+
+    // Find and populate the cart items
+    const cartItemsPromise = Cart.find({ user: userId }).populate({
+      path: 'product',
+      select: 'name price discountPercentage thumbnail',
+    });
+
+    // Execute both queries in parallel for efficiency
+    const [totals, cartItems] = await Promise.all([
+      totalsPromise,
+      cartItemsPromise,
+    ]);
+
+    const cartTotals = totals[0] || {
+      total: 0,
+      discountedTotal: 0,
+      totalProducts: 0,
+      totalQuantity: 0,
+    };
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        cartItems,
+        cartTotals,
+      },
+    });
+  },
+);
 
 export const updateCartQuantity = (
   req: Request,
@@ -45,21 +125,31 @@ export const updateCartQuantity = (
   next();
 };
 
-const createCart = factory.createOne<ICart>(Cart, 'cart');
+const addToCart = factory.createOne<ICart>(Cart, 'cart');
 
-const getAllCarts = factory.getAll<ICart>(Cart, 'carts');
+const updateCartItem = factory.updateOne<ICart>(Cart, 'cart');
 
-const getOneCart = factory.getOne<ICart>(Cart, 'cart'); // needed?
+const deleteCartItem = factory.deleteOne<ICart>(Cart, 'cart'); // Remove a specific cart item
 
-const updateCart = factory.updateOne<ICart>(Cart, 'cart');
+const clearUserCart = catchAsync(
+  async (req: any, res: Response, next: NextFunction) => {
+    const cart = await Cart.deleteMany();
 
-const deleteCart = factory.deleteOne<ICart>(Cart, 'cart');
+    if (!cart) return next(new AppError('No cart found with this Id', 404));
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Cart deleted successfully.',
+      data: null,
+    });
+  },
+); // Clear the entire cart for a user
 
 export default {
-  createCart,
-  getAllCarts,
-  getOneCart,
-  updateCart,
+  addToCart,
+  getUserCart,
+  updateCartItem,
   updateCartQuantity,
-  deleteCart,
+  deleteCartItem,
+  clearUserCart,
 };

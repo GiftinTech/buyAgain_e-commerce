@@ -9,12 +9,13 @@ router.use(authController.protectRoute, authController.restrictTo('user'));
 
 router
   .route('/')
-  .get(orderController.setUserFilter, cartController.getAllCarts) // user gets their own cart
-  .post(cartController.createCart); // user add to cart
+  .get(cartController.getUserCart)
+  .post(cartController.addToCart); // user add to cart
 
 router
   .route('/:itemId')
-  .patch(cartController.updateCartQuantity, cartController.updateCart) // user update quantity only
-  .delete(cartController.deleteCart); // user remove item
+  .patch(cartController.updateCartQuantity, cartController.updateCartItem) // user update quantity only
+  .delete(cartController.deleteCartItem)  // remove one item 
+  .delete(cartController.clearUserCart); // delete cart
 
 export default router;

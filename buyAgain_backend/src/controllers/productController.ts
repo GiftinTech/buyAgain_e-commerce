@@ -2,11 +2,7 @@ import Product, { IProduct } from '../models/productModel';
 
 import factory from './controllerFactory';
 
-const getAllProducts = factory.getAll<IProduct>(
-  Product,
-  'products',
-  '-reviews',
-);
+const getAllProducts = factory.getAll<IProduct>(Product, 'products');
 
 const getOneProduct = factory.getOne<IProduct>(Product, 'products', {
   path: 'reviews.user',

@@ -7,10 +7,7 @@
     "discountPercentage": 10.48,
     "rating": 2.56,
     "stock": 99,
-    "tags": [
-      "beauty",
-      "mascara"
-    ],
+    "tags": ["beauty", "mascara"],
     "brand": "Essence",
     "sku": "BEA-ESS-ESS-001",
     "weight": 4,
@@ -22,25 +19,6 @@
     "warrantyInformation": "1 week warranty",
     "shippingInformation": "Ships in 3-5 business days",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      [
-        {
-          "review": "This is some awesome thinking!",
-          "rating": 3,
-          "user": "68979127dc7122224fa59041"
-        },
-        {
-          "review": "What terrific math skills you're showing!",
-          "rating": 4,
-          "user": "68979127dc7122224fa5903e"
-        },
-        {
-          "review": "You are an amazing writer!",
-          "rating": 2,
-          "user": "68979127dc7122224fa5903e"
-        }
-      ]
-    ],
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "5784719087687",
@@ -59,10 +37,7 @@
     "discountPercentage": 18.19,
     "rating": 2.86,
     "stock": 34,
-    "tags": [
-      "beauty",
-      "eyeshadow"
-    ],
+    "tags": ["beauty", "eyeshadow"],
     "brand": "Glamour Beauty",
     "sku": "BEA-GLA-EYE-002",
     "weight": 9,
@@ -74,23 +49,7 @@
     "warrantyInformation": "1 year warranty",
     "shippingInformation": "Ships in 2 weeks",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 5,
-        "review": "Great product!",
-        "user": "68979127dc7122224fa59041"
-      },
-      {
-        "rating": 4,
-        "review": "Awesome product!",
-        "user": "68979127dc7122224fa5903c"
-      },
-      {
-        "rating": 1,
-        "review": "Poor quality!",
-        "user": "68979127dc7122224fa59043"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "9170275171413",
@@ -109,10 +68,7 @@
     "discountPercentage": 9.84,
     "rating": 4.64,
     "stock": 89,
-    "tags": [
-      "beauty",
-      "face powder"
-    ],
+    "tags": ["beauty", "face powder"],
     "brand": "Velvet Touch",
     "sku": "BEA-VEL-POW-003",
     "weight": 8,
@@ -124,23 +80,7 @@
     "warrantyInformation": "3 months warranty",
     "shippingInformation": "Ships in 1-2 business days",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 4,
-        "review": "Would buy again!",
-        "user": "68979127dc7122224fa5903f"
-      },
-      {
-        "rating": 5,
-        "review": "Highly impressed!",
-        "user": "68979127dc7122224fa59044"
-      },
-      {
-        "rating": 1,
-        "review": "Very dissatisfied!",
-        "user": "68979127dc7122224fa59040"
-      }
-    ],
+
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "8418883906837",
@@ -159,10 +99,7 @@
     "discountPercentage": 12.16,
     "rating": 4.36,
     "stock": 91,
-    "tags": [
-      "beauty",
-      "lipstick"
-    ],
+    "tags": ["beauty", "lipstick"],
     "brand": "Chic Cosmetics",
     "sku": "BEA-CHI-LIP-004",
     "weight": 1,
@@ -174,23 +111,7 @@
     "warrantyInformation": "3 year warranty",
     "shippingInformation": "Ships in 1 week",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 4,
-        "review": "Great product!",
-        "user": "68979127dc7122224fa5903d"
-      },
-      {
-        "rating": 5,
-        "review": "Great product!",
-        "user": "68979127dc7122224fa5903e"
-      },
-      {
-        "rating": 5,
-        "review": "Would buy again!",
-        "user": "68979127dc7122224fa5903c"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "9467746727219",
@@ -209,10 +130,7 @@
     "discountPercentage": 11.44,
     "rating": 4.32,
     "stock": 79,
-    "tags": [
-      "beauty",
-      "nail polish"
-    ],
+    "tags": ["beauty", "nail polish"],
     "brand": "Nail Couture",
     "sku": "BEA-NAI-NAI-005",
     "weight": 8,
@@ -224,23 +142,7 @@
     "warrantyInformation": "1 month warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 2,
-        "review": "Poor quality!",
-        "user": "68979127dc7122224fa59041"
-      },
-      {
-        "rating": 5,
-        "review": "Great product!",
-        "user": "68979127dc7122224fa59040"
-      },
-      {
-        "rating": 1,
-        "review": "Very unhappy with my purchase!",
-        "user": "68979127dc7122224fa59042"
-      }
-    ],
+
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "4063010628104",
@@ -259,10 +161,7 @@
     "discountPercentage": 1.89,
     "rating": 4.37,
     "stock": 29,
-    "tags": [
-      "fragrances",
-      "perfumes"
-    ],
+    "tags": ["fragrances", "perfumes"],
     "brand": "Calvin Klein",
     "sku": "FRA-CAL-CAL-006",
     "weight": 7,
@@ -274,23 +173,7 @@
     "warrantyInformation": "1 week warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 2,
-        "review": "Very disappointed!",
-        "user": "68979127dc7122224fa5903e"
-      },
-      {
-        "rating": 4,
-        "review": "Fast shipping!",
-        "user": "68979127dc7122224fa59040"
-      },
-      {
-        "rating": 3,
-        "review": "Not as described!",
-        "user": "68979127dc7122224fa59040"
-      }
-    ],
+
     "returnPolicy": "90 days return policy",
     "meta": {
       "barcode": "2451534060749",
@@ -311,10 +194,7 @@
     "discountPercentage": 16.51,
     "rating": 4.26,
     "stock": 58,
-    "tags": [
-      "fragrances",
-      "perfumes"
-    ],
+    "tags": ["fragrances", "perfumes"],
     "brand": "Chanel",
     "sku": "FRA-CHA-CHA-007",
     "weight": 7,
@@ -326,23 +206,7 @@
     "warrantyInformation": "3 year warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 4,
-        "review": "Highly impressed!",
-        "user": "68979127dc7122224fa5903f"
-      },
-      {
-        "rating": 5,
-        "review": "Awesome product!",
-        "user": "68979127dc7122224fa59042"
-      },
-      {
-        "rating": 5,
-        "review": "Very happy with my purchase!",
-        "user": "68979127dc7122224fa5903f"
-      }
-    ],
+
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "4091737746820",
@@ -363,10 +227,7 @@
     "discountPercentage": 14.72,
     "rating": 3.8,
     "stock": 98,
-    "tags": [
-      "fragrances",
-      "perfumes"
-    ],
+    "tags": ["fragrances", "perfumes"],
     "brand": "Dior",
     "sku": "FRA-DIO-DIO-008",
     "weight": 4,
@@ -378,23 +239,7 @@
     "warrantyInformation": "1 week warranty",
     "shippingInformation": "Ships in 2 weeks",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 5,
-        "review": "Great value for money!",
-        "user": "68979127dc7122224fa5903d"
-      },
-      {
-        "rating": 4,
-        "review": "Great value for money!",
-        "user": "68979127dc7122224fa5903f"
-      },
-      {
-        "rating": 4,
-        "review": "Great product!",
-        "user": "68979127dc7122224fa59045"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "1445086097250",
@@ -415,10 +260,7 @@
     "discountPercentage": 0.62,
     "rating": 3.96,
     "stock": 4,
-    "tags": [
-      "fragrances",
-      "perfumes"
-    ],
+    "tags": ["fragrances", "perfumes"],
     "brand": "Dolce & Gabbana",
     "sku": "FRA-DOL-DOL-009",
     "weight": 6,
@@ -430,23 +272,7 @@
     "warrantyInformation": "3 year warranty",
     "shippingInformation": "Ships in 1 month",
     "availabilityStatus": "Low Stock",
-    "reviews": [
-      {
-        "rating": 4,
-        "review": "Would buy again!",
-        "user": "68979127dc7122224fa5903f"
-      },
-      {
-        "rating": 4,
-        "review": "Highly recommended!",
-        "user": "68979127dc7122224fa5903c"
-      },
-      {
-        "rating": 5,
-        "review": "Very happy with my purchase!",
-        "user": "68979127dc7122224fa5903e"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "3023868210708",
@@ -467,10 +293,7 @@
     "discountPercentage": 14.39,
     "rating": 2.74,
     "stock": 91,
-    "tags": [
-      "fragrances",
-      "perfumes"
-    ],
+    "tags": ["fragrances", "perfumes"],
     "brand": "Gucci",
     "sku": "FRA-GUC-GUC-010",
     "weight": 7,
@@ -482,23 +305,7 @@
     "warrantyInformation": "6 months warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 1,
-        "review": "Very dissatisfied!",
-        "user": "68979127dc7122224fa5903d"
-      },
-      {
-        "rating": 5,
-        "review": "Very happy with my purchase!",
-        "user": "68979127dc7122224fa59043"
-      },
-      {
-        "rating": 4,
-        "review": "Highly impressed!",
-        "user": "68979127dc7122224fa59040"
-      }
-    ],
+
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "3170832177880",
@@ -519,10 +326,7 @@
     "discountPercentage": 8.57,
     "rating": 4.77,
     "stock": 88,
-    "tags": [
-      "furniture",
-      "beds"
-    ],
+    "tags": ["furniture", "beds"],
     "brand": "Annibale Colombo",
     "sku": "FUR-ANN-ANN-011",
     "weight": 10,
@@ -534,23 +338,7 @@
     "warrantyInformation": "1 year warranty",
     "shippingInformation": "Ships in 1 month",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 2,
-        "review": "Would not recommend!",
-        "user": "68979127dc7122224fa5903d"
-      },
-      {
-        "rating": 4,
-        "review": "Highly impressed!",
-        "user": "68979127dc7122224fa5903c"
-      },
-      {
-        "rating": 1,
-        "review": "Poor quality!",
-        "user": "68979127dc7122224fa59042"
-      }
-    ],
+
     "returnPolicy": "No return policy",
     "meta": {
       "barcode": "3610757456581",
@@ -571,10 +359,7 @@
     "discountPercentage": 14.4,
     "rating": 3.92,
     "stock": 60,
-    "tags": [
-      "furniture",
-      "sofas"
-    ],
+    "tags": ["furniture", "sofas"],
     "brand": "Annibale Colombo",
     "sku": "FUR-ANN-ANN-012",
     "weight": 6,
@@ -586,23 +371,7 @@
     "warrantyInformation": "Lifetime warranty",
     "shippingInformation": "Ships in 1 week",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 3,
-        "review": "Very unhappy with my purchase!",
-        "user": "68979127dc7122224fa59041"
-      },
-      {
-        "rating": 5,
-        "review": "Fast shipping!",
-        "user": "68979127dc7122224fa59042"
-      },
-      {
-        "rating": 1,
-        "review": "Poor quality!",
-        "user": "68979127dc7122224fa5903f"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "1777662847736",
@@ -623,10 +392,7 @@
     "discountPercentage": 19.09,
     "rating": 2.87,
     "stock": 64,
-    "tags": [
-      "furniture",
-      "bedside tables"
-    ],
+    "tags": ["furniture", "bedside tables"],
     "brand": "Furniture Co.",
     "sku": "FUR-FUR-BED-013",
     "weight": 2,
@@ -638,23 +404,7 @@
     "warrantyInformation": "5 year warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 4,
-        "review": "Excellent quality!",
-        "user": "68979127dc7122224fa59042"
-      },
-      {
-        "rating": 4,
-        "review": "Excellent quality!",
-        "user": "68979127dc7122224fa59045"
-      },
-      {
-        "rating": 4,
-        "review": "Highly recommended!",
-        "user": "68979127dc7122224fa5903f"
-      }
-    ],
+
     "returnPolicy": "7 days return policy",
     "meta": {
       "barcode": "6441287925979",
@@ -675,10 +425,7 @@
     "discountPercentage": 2.01,
     "rating": 4.88,
     "stock": 26,
-    "tags": [
-      "furniture",
-      "office chairs"
-    ],
+    "tags": ["furniture", "office chairs"],
     "brand": "Knoll",
     "sku": "FUR-KNO-KNO-014",
     "weight": 10,
@@ -690,23 +437,7 @@
     "warrantyInformation": "2 year warranty",
     "shippingInformation": "Ships overnight",
     "availabilityStatus": "In Stock",
-    "reviews": [
-      {
-        "rating": 2,
-        "review": "Waste of money!",
-        "user": "68979127dc7122224fa59046"
-      },
-      {
-        "rating": 2,
-        "review": "Very dissatisfied!",
-        "user": "68979127dc7122224fa59045"
-      },
-      {
-        "rating": 5,
-        "review": "Would buy again!",
-        "user": "68979127dc7122224fa59041"
-      }
-    ],
+
     "returnPolicy": "2 weeks return policy",
     "meta": {
       "barcode": "4032860713788",

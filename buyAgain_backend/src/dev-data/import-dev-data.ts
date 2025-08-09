@@ -1,8 +1,8 @@
 import fs from 'fs';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Product from '../models/productModel';
-import User from '../models/userModel';
+// import Product from '../models/productModel';
+// import User from '../models/userModel';
 import Cart from '../models/cartModel';
 import Review from '../models/reviewModel';
 
@@ -28,19 +28,28 @@ if (!DB) console.log('DB URI and PWD incorrect');
 })();
 
 // ii. parse json into js obj and read the parsed obj
-const products = JSON.parse(
-  fs.readFileSync(`${__dirname}/updated-product-data.json`, 'utf-8'),
-);
+// const products = JSON.parse(
+//   fs.readFileSync(`${__dirname}/updated-product-data.json`, 'utf-8'),
+// );
 
 // const users = JSON.parse(
 //   fs.readFileSync(`${__dirname}/user-data.json`, 'utf-8'),
 // );
 
+const reviews = JSON.parse(
+  fs.readFileSync(`${__dirname}/review-data.json`, 'utf-8'),
+);
+const carts = JSON.parse(
+  fs.readFileSync(`${__dirname}/cart-data.json`, 'utf-8'),
+);
+
 // iii. import data into DB
 const importData = async () => {
   try {
-    await Product.create(products);
+    //await Product.create(products);
     //await User.create(users);
+    await Review.create(reviews);
+    await Cart.create(reviews);
     console.log('Data successfully loaded!✅');
   } catch (err) {
     console.log(err);
@@ -51,8 +60,10 @@ const importData = async () => {
 // iv. Delete all Data from DB
 const deleteData = async () => {
   try {
-    await Product.deleteMany();
+    // await Product.deleteMany();
     //await User.deleteMany();
+    await Review.deleteMany();
+    await Cart.deleteMany();
     console.log('Data successfully deleted❌🚮!');
   } catch (err) {
     console.log(err);

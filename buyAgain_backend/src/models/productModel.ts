@@ -3,7 +3,6 @@ import { Schema, Types, Model, model, Document } from 'mongoose';
 import mongooseUniqueValidator from 'mongoose-unique-validator';
 
 import slugify from 'slugify';
-import reviewSchema, { IReview } from './reviewModel';
 
 import AppError from '../utils/appError';
 
@@ -24,6 +23,7 @@ export interface IProduct extends Document {
   price: number;
   discountPercentage?: number;
   rating: number;
+  ratingQuantity: number;
   stock?: number;
   tags?: string[];
   brand?: string;
@@ -37,7 +37,6 @@ export interface IProduct extends Document {
   warrantyInformation?: string;
   shippingInformation?: string;
   availabilityStatus?: string;
-  reviews: Types.DocumentArray<IReview>;
   returnPolicy: String;
   meta: IProductMeta;
   images: [String];
@@ -87,6 +86,10 @@ const productSchema = new Schema<IProduct>(
       max: [5, 'Rating must be below 5.0'],
       set: (val: number) => Math.round(val * 10) / 10,
     },
+    ratingQuantity: {
+      type: Number,
+      default: 0,
+    },
     stock: Number,
     tags: [String],
     brand: String,
@@ -100,20 +103,19 @@ const productSchema = new Schema<IProduct>(
     warrantyInformation: String,
     shippingInformation: String,
     availabilityStatus: String,
-    reviews: [reviewSchema],
     returnPolicy: String,
     meta: {
-    createdAt: {
-      type: Date,
-      default: Date.now,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      barcode: String,
+      qrCode: String,
     },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    barcode: String,
-    qrCode: String,
-  },
     images: [String],
     thumbnail: String,
   },
