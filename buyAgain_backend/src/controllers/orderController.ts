@@ -88,7 +88,6 @@ const getCheckoutSession = catchAsync(
 //   });
 // };
 
-
 // Development version, TESTING only
 // Update the function to accept a PaymentIntent object
 export const createOrderCheckout = async (
@@ -190,7 +189,7 @@ export const webhookCheckout = (req: Request, res: Response): void => {
 // MW to set the filter for user-specific data
 const setUserFilter = (req: AuthRequest, res: Response, next: NextFunction) => {
   // If the user is logged in, set a filter for their ID.
-  req.filter = req.user ? { user: req.user._id } : {};
+  req.userFilter = req.user ? { user: req.user._id } : {};
   next();
 };
 

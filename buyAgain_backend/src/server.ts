@@ -14,11 +14,11 @@ if (!databaseUri || !databasePwd || !port) {
 
 const DB = databaseUri.replace('<db_password>', databasePwd);
 
-const start = async () => {
+(async () => {
   try {
     await mongoose.connect(DB);
     console.log('-------------------------------');
-    console.log('DB connection Successful ✅');
+    console.log('DB Connection Successful ✅');
     console.log('-------------------------------');
     const server = app.listen(port, () => {
       console.log(`Server running on port ${port}...`);
@@ -28,6 +28,4 @@ const start = async () => {
   } catch (err) {
     console.error('❌DB connection error:', err);
   }
-};
-
-start();
+})();

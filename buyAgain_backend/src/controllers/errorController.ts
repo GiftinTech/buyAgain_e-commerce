@@ -70,6 +70,8 @@ const globalErrorHandler = (
     (error as any)[key] = err[key];
   });
 
+  error.message = err.message;
+
   // Set default values for cloned error
   error.statusCode = error.statusCode || 500;
   error.status = error.status || 'error';

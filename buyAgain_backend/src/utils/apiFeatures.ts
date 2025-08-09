@@ -1,7 +1,14 @@
+import { Document, Model, FilterQuery, Query } from 'mongoose';
+
 // APIFeatures class for building chained database queries.
-class APIFeatures<T> {
-  // `query` is the Mongoose query, `queryString` is from the request.
-  constructor(public query: any, public queryString: any) {}
+class APIFeatures {
+  query: any;
+  queryString: any;
+
+  constructor(query: any, queryString: any) {
+    this.query = query;
+    this.queryString = queryString;
+  }
 
   // Filters the query based on request parameters.
   filter(): this {

@@ -1,0 +1,69 @@
+[
+  {
+    "name": "Gift Awase",
+    "email": "gift@gmail.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;",
+    "test_role": "admin"
+  },
+  {
+    "name": "Emily Johnson",
+    "email": "emily.johnson@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Michael Williams",
+    "email": "michael.williams@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Sophia Brown",
+    "email": "sophia.brown@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "James Davis",
+    "email": "james.davis@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Emma Miller",
+    "email": "emma.miller@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Olivia Wilson",
+    "email": "olivia.wilson@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Alexander Jones",
+    "email": "alexander.jones@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Ava Taylor",
+    "email": "ava.taylor@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Ethan Martinez",
+    "email": "ethan.martinez@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  },
+  {
+    "name": "Isabella Anderson",
+    "email": "isabella.anderson@x.dummyjson.com",
+    "password": "Abf5443.4mrl;",
+    "passwordConfirm": "Abf5443.4mrl;"
+  }
+]

@@ -1,4 +1,4 @@
-import { Types, Schema, Document, model } from 'mongoose';
+import { Types, Schema, Document, model, Model } from 'mongoose';
 
 export interface ICart extends Document {
   product: Types.ObjectId;
@@ -53,6 +53,6 @@ cartSchema.virtual('discountedTotal').get(function (this: ICart) {
   return total - discountAmount;
 });
 
-const Cart = model('Cart', cartSchema);
+const Cart: Model<ICart> = model<ICart>('Cart', cartSchema);
 
 export default Cart;

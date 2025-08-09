@@ -1,11 +1,12 @@
 import Product, { IProduct } from '../models/productModel';
+
 import factory from './controllerFactory';
 
 const getAllProducts = factory.getAll<IProduct>(
   Product,
   'products',
   '-reviews',
-); 
+);
 
 const getOneProduct = factory.getOne<IProduct>(Product, 'products', {
   path: 'reviews.user',
@@ -14,14 +15,14 @@ const getOneProduct = factory.getOne<IProduct>(Product, 'products', {
 
 const addProduct = factory.createOne<IProduct>(Product, 'product');
 
-const updateProduct = factory.createOne<IProduct>(Product, 'product');
+const updateProduct = factory.updateOne<IProduct>(Product, 'product');
 
-const deleteProduct = factory.createOne<IProduct>(Product, 'product');
+const deleteProduct = factory.deleteOne<IProduct>(Product, 'product');
 
 export default {
   getAllProducts,
   getOneProduct,
   addProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
 };

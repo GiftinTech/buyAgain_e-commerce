@@ -1,7 +1,19 @@
 // src/models/productModel.ts
 import { Schema, Types, Model, model, Document } from 'mongoose';
+import mongooseUniqueValidator from 'mongoose-unique-validator';
+
 import slugify from 'slugify';
 import reviewSchema, { IReview } from './reviewModel';
+
+import AppError from '../utils/appError';
+
+// Define the interface for the meta sub-document
+export interface IProductMeta {
+  createdAt: Date;
+  updatedAt: Date;
+  barcode?: string;
+  qrCode?: string;
+}
 
 // Define the IProduct interface, ensuring it extends Document
 export interface IProduct extends Document {
@@ -27,6 +39,7 @@ export interface IProduct extends Document {
   availabilityStatus?: string;
   reviews: Types.DocumentArray<IReview>;
   returnPolicy: String;
+  meta: IProductMeta;
   images: [String];
   thumbnail: String;
 }
@@ -43,10 +56,7 @@ const productSchema = new Schema<IProduct>(
         70,
         'A product must have less than or equal to 70 characters.',
       ],
-      minlength: [
-        20,
-        'A product must have more than or equal to 20 characters.',
-      ],
+      minlength: [5, 'A product must have more than or equal to 5 characters.'],
     },
     description: {
       type: String,
@@ -68,12 +78,6 @@ const productSchema = new Schema<IProduct>(
     },
     discountPercentage: {
       type: Number,
-      validate: {
-        validator: function (this: IProduct, val: number): boolean {
-          return val < this.price;
-        },
-        message: 'Discount price {{VALUE}} must be below the regular price.',
-      },
       default: 0,
     },
     rating: {
@@ -98,22 +102,52 @@ const productSchema = new Schema<IProduct>(
     availabilityStatus: String,
     reviews: [reviewSchema],
     returnPolicy: String,
+    meta: {
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    barcode: String,
+    qrCode: String,
+  },
     images: [String],
     thumbnail: String,
   },
   {
+    id: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
     timestamps: true,
   },
 );
 
-productSchema.index({ price: 1, rating: -1, discountPercentage: -1 }); // Corrected discountedPercentage
+productSchema.index({ price: 1, rating: -1, discountPercentage: -1 });
 productSchema.index({ slug: 1 });
 productSchema.index({ name: 'text', description: 'text' });
 
+productSchema.plugin(mongooseUniqueValidator); // runs unique field validators again when doc is update
+
 productSchema.pre<IProduct>('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+productSchema.pre('save', function (next) {
+  // Check if the discountPercentage exists and is a valid number
+  if (this.discountPercentage && this.discountPercentage > 0) {
+    if (this.discountPercentage >= this.price) {
+      next(
+        new AppError(
+          'Discount percentage must be less than the regular price.',
+          404,
+        ),
+      );
+    }
+  }
   next();
 });
 

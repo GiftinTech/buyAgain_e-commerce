@@ -10,7 +10,8 @@ const getMe = (req: AuthRequest, res: Response, next: NextFunction) => {
   next();
 };
 
-const getAllUsers = factory.getAll<IUser>(User, 'users', '-cart');
+const getAllUsers = factory.getAll<IUser>(User, 'users');
+
 const getUser = factory.getOne<IUser>(User, 'users', {
   path: 'cart',
   select: 'name price quantity',

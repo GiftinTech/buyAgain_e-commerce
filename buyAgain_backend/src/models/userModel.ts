@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Types, Document, Model, Query, Schema, model } from 'mongoose';
+import { Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 

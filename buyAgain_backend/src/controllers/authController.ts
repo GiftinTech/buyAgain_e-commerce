@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { NextFunction, Request, Response } from 'express';
 
-import User from '../models/userModel';
+import User, { IUser } from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import { DecodedToken } from '../types/token';
@@ -185,7 +185,7 @@ const protectRoute = catchAsync(
     });
 
     // iii. check if user still exists
-    const currentUser = await User.findById(decoded.id);
+    const currentUser: IUser | null = await User.findById(decoded.id);
     if (!currentUser)
       return next(new AppError("The token's user no longer exist.", 401));
 

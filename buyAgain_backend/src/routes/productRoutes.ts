@@ -5,13 +5,8 @@ import productController from '../controllers/productController';
 const router = express.Router();
 
 // Unprotected and Unrestricted Routes
-router
-  .route('/')
-  .get(productController.getAllProducts)
-router
-  .route('/:id')
-  .get(productController.getOneProduct)
-
+router.route('/').get(productController.getAllProducts);
+router.route('/:id').get(productController.getOneProduct);
 
 // Protected and Restricted Routes
 router.use(
@@ -20,7 +15,10 @@ router.use(
 );
 
 router.route('/').post(productController.addProduct);
-router.route('/:id').put(productController.updateProduct).patch(productController.updateProduct)
+router
+  .route('/:id')
+  .put(productController.updateProduct)
+  .patch(productController.updateProduct)
   .delete(productController.deleteProduct);
 
 export default router;

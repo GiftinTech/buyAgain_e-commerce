@@ -70,7 +70,7 @@ const getOne = <T extends Document>(
     const dataKey = await query;
 
     if (!dataKey)
-      return next(new AppError(`No ${dataKey} found with that Id`, 404));
+      return next(new AppError(`No document found with that Id`, 404));
 
     res.status(200).json({
       status: 'success',
@@ -82,13 +82,16 @@ const getOne = <T extends Document>(
 
 const updateOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {
-    const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    // 1. Find the document by ID
+    const data = await Model.findById(req.params.id);
 
-    if (!data)
-      return next(new AppError(`no ${dataKey} found with that Id`, 404));
+    if (!data) return next(new AppError(`no document found with that Id`, 404));
+
+    // 2. Update the fields manually
+    Object.assign(data, req.body);
+
+    // 3. Save the document (this runs all validators)
+    await data.save();
 
     res.status(200).json({
       status: 'success',
@@ -102,12 +105,11 @@ const deleteOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {
     const data = await Model.findByIdAndDelete(req.params.id);
 
-    if (!data)
-      return next(new AppError(`no ${dataKey} found with that Id`, 404));
+    if (!data) return next(new AppError(`no document found with that Id`, 404));
 
     res.status(200).json({
       status: 'success',
-      message: `${dataKey} deleted successfully.`,
+      message: `document deleted successfully.`,
       data: null,
     });
   });
