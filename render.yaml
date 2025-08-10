@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: buyagain-backend
+    env: node
+    rootDir: buyAgain_backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE
+        sync: false # Will set in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false

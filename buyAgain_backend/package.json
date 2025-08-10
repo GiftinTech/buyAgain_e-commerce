@@ -15,8 +15,9 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write src",
     "dev": "ts-node-dev --respawn src/server.ts",
-    "start-prod": "NODE_ENV=production ts-node-dev --respawn src/server.ts",
-    "build": "tsc"
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "start-prod": "NODE_ENV=production node dist/server.js"
   },
   "author": "GiftinTech",
   "license": "ISC",

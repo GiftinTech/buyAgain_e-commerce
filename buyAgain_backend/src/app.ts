@@ -130,6 +130,9 @@ if (process.env.NODE_ENV === 'production') {
 const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 };
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀️'));
 
