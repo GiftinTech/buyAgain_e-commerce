@@ -3,10 +3,13 @@ import { Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 
+import defaultPhoto from '../../public/img/users/default.jpg';
+
 export interface IUser extends Document {
   _id: string;
   name: string;
   email: string;
+  photo: string;
   role: 'user' | 'admin' | 'seller';
   password: string;
   passwordConfirm?: string;
@@ -33,6 +36,10 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       validate: [validator.isEmail, 'Please provide a valid email'],
+    },
+    photo: {
+      type: String,
+      default: defaultPhoto,
     },
     role: {
       type: String,

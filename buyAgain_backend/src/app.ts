@@ -36,17 +36,24 @@ app.get('/ip', (request, response) => {
 // Enable CORS for cross-origin requests
 app.use(cors());
 
-if (process.env.NODE_ENV === 'develpment') app.options('*', cors());
-else if (process.env.NODE_ENV === 'production') {
-  const corsOptions = {
-    origin: ['http://localhost:5173', 'https://buyAgain.vercel.app'], // allowed origins
-    credentials: true, // allow cookies/auth headers
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // allowed headers
-  };
+let corsOptions;
 
-  app.use(cors(corsOptions));
+if (process.env.NODE_ENV === 'development') {
+  corsOptions = {
+    origin: '*',
+    credentials: true,
+  };
+} else {
+  corsOptions = {
+    origin: ['https://buyAgain.vercel.app', 'http://localhost:5173'], // remove localhost link from prod when done testing
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  };
 }
+
+// Apply the CORS middleware with the chosen options
+app.use(cors(corsOptions));
 
 // Serve static files in public/
 app.use(express.static(path.join(__dirname, 'public')));
