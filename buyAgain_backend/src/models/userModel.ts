@@ -3,8 +3,6 @@ import { Document, Model, Query, Schema, model } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcrypt';
 
-import defaultPhoto from '../../public/img/users/default.jpg';
-
 export interface IUser extends Document {
   _id: string;
   name: string;
@@ -39,7 +37,7 @@ const userSchema = new Schema<IUser>(
     },
     photo: {
       type: String,
-      default: defaultPhoto,
+      default: 'default.jpg',
     },
     role: {
       type: String,
