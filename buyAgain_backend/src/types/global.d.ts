@@ -1,1 +1,1 @@
-declare module 'mongoose-unique-validator';
+declare module '*.jpg';
