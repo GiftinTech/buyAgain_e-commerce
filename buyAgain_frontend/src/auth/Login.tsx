@@ -4,14 +4,13 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   // Access auth functions and state from the context
-  const { handleLogin, loadingAuth, user } = useAuth();
+  const { handleLogin, loadingAuth } = useAuth();
 
   // State for the form inputs and submission status
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
   // Navigation hook
   const navigate = useNavigate();
 
@@ -22,20 +21,27 @@ const Login = () => {
 
     // Call the login function from the context with email and password
     const result = await handleLogin(email, password);
-    console.log('Logging in:', { email, password });
 
     if (result.success) {
       // Clear form inputs on successful login
       setEmail('');
       setPassword('');
 
-      // check if logged in user is admin | seller
-      if (user?.role === 'admin' || user?.role === 'seller') {
-        navigate('/admin');
-      }
+      const userProfile = result?.userProfile;
 
-      // Navigate ordinary users to the home page
-      navigate('/');
+      // check if logged in user is admin | seller
+      if (
+        userProfile?.data.dataKey.role === 'admin' ||
+        userProfile?.data.dataKey.role === 'seller'
+      ) {
+        //console.log('Logging to Admin');
+
+        navigate('/admin');
+      } else {
+        //console.log('Logging to users');
+
+        navigate('/'); // Navigate ordinary users to the home page
+      }
     } else {
       // Display the error message from the API
       setFormError(result.error || 'An unknown error occurred.');
@@ -64,7 +70,7 @@ const Login = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setEmail(e.target.value)
               }
-              className="w-full rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
+              className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your email"
               required
               disabled={isSubmitting || loadingAuth}
@@ -81,7 +87,7 @@ const Login = () => {
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setPassword(e.target.value)
               }
-              className="w-full rounded-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
+              className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your password"
               required
               disabled={isSubmitting || loadingAuth}

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
-console.log(BUYAGAIN_API_BASE_URL);
 
 // Shape of the buyAgain User object
 interface BuyAgainUser {
@@ -14,9 +14,17 @@ interface BuyAgainUser {
   role?: string;
 }
 
+interface DataKey {
+  dataKey: BuyAgainUser;
+}
+
+interface Data {
+  data: DataKey;
+}
+
 // Shape of the AuthContext value
 interface AuthContextType {
-  user: BuyAgainUser | null;
+  user: Data | null;
   loadingAuth: boolean;
   appError: string;
   handleSignup: (
@@ -28,7 +36,11 @@ interface AuthContextType {
   handleLogin: (
     email: string,
     password: string,
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    userProfile?: Data;
+  }>;
   handleLogout: () => Promise<{ success: boolean; error?: string }>;
   handleForgotPassword: (
     email: string,
@@ -47,20 +59,29 @@ interface AuthProviderProps {
 }
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<BuyAgainUser | null>(null);
+  const [user, setUser] = useState<Data | null>(null);
   const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
   const [appError, setAppError] = useState<string>('');
 
-  // Function to decode JWT token to get user info
-  const decodeJwt = (token: string): string => {
-    console.log(token);
-    return 'success';
+  // Function to decode JWT token to check for expiration
+  const decodeJwt = (token: string): boolean => {
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.exp && decoded.exp * 1000 > Date.now()) {
+        return true; // Token is valid and not expired
+      }
+      return false; // Token is expired
+    } catch (error) {
+      // Token is malformed or invalid
+      console.error('Failed to decode JWT:', error);
+      return false;
+    }
   };
 
   // Function to fetch the full user profile from buyAgain_backend
   const fetchUserProfile = async (accessToken: string) => {
     try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/users/me`, {
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/api/v1/users/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +91,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (response.ok) {
         const userData = await response.json();
-        console.log(userData);
+        // console.log('Fetch Users', userData);
         if (userData) {
           setUser(userData);
         } else {
@@ -128,16 +149,19 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     passwordConfirm: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          passwordConfirm,
-        }),
-      });
+      const response = await fetch(
+        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/signup`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            passwordConfirm,
+          }),
+        },
+      );
 
       const data = await response.json();
 
@@ -166,37 +190,52 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const handleLogin = async (
-    username: string,
+    email: string,
     password: string,
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{
+    success: boolean;
+    error?: string;
+    userProfile?: Data;
+  }> => {
     try {
-      // Call buyAgain Simple JWT token obtain endpoint
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/login/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(
+        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/login/`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
-        const decodedToken = decodeJwt(data.access);
-        if (decodedToken) {
-          // Fetch the full user profile after getting the token
-          await fetchUserProfile(data.access);
-          return { success: true };
+        const accessToken = data.accessToken;
+
+        if (typeof accessToken === 'string' && accessToken.length > 0) {
+          localStorage.setItem('access_token', accessToken);
+          const isTokenValid = decodeJwt(accessToken);
+
+          if (isTokenValid) {
+            const userProfile = await fetchUserProfile(accessToken);
+            setUser(userProfile);
+            return { success: true, userProfile };
+          } else {
+            return {
+              success: false,
+              error: 'Failed to decode user information from token.',
+            };
+          }
         } else {
           return {
             success: false,
-            error: 'Failed to decode user information from token.',
+            error: 'Login successful, but access token was not provided.',
           };
         }
       } else {
         return {
           success: false,
-          error: data.detail || 'Login failed. Check your credentials.',
+          error: data.message || 'Login failed. Check your credentials.',
         };
       }
     } catch (error: any) {
@@ -213,14 +252,39 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     error?: string;
   }> => {
     try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/logout`);
-      console.log(response);
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        setUser(null);
+        return { success: true };
+      }
+
+      // Send the access token in the Authorization header.
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/api/v1/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!res.ok) {
+        console.warn('Logout request failed on server.');
+        // You can get the error from the response body for more detail.
+        const errorData = await res.json();
+        console.error('Server error:', errorData);
+      }
+      const data = await res.json();
+      console.log(data);
+
       localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
       setUser(null);
       return { success: true };
     } catch (error: any) {
       console.error('Logout error:', error);
+
+      localStorage.removeItem('access_token');
+      setUser(null);
+
       return {
         success: false,
         error: error.message || 'An unexpected error occurred during logout.',
@@ -234,7 +298,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/auth/forgotPassword`,
+        `${BUYAGAIN_API_BASE_URL}/api/v1//auth/forgotPassword`,
         {
           method: 'POST',
           headers: {
@@ -278,7 +342,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}auth/resetPassword/${reset_token}`,
+        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/resetPassword/${reset_token}`,
         {
           method: 'POST',
           headers: {

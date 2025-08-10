@@ -35,7 +35,7 @@ const ResetPassword = () => {
             placeholder="New Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className="w-full rounded-lg border border-gray-300 p-3 text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
             required
           />
           <input
@@ -44,7 +44,7 @@ const ResetPassword = () => {
             placeholder="Confirm New Password"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className="w-full rounded-lg border border-gray-300 p-3 text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
             required
           />
           <button

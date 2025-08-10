@@ -12,6 +12,7 @@ import {
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import useTheme from '../hooks/useTheme';
+import Logout from '../auth/Logout';
 
 interface NavLinks {
   name: string;
@@ -20,6 +21,7 @@ interface NavLinks {
 
 const Header = () => {
   const { user } = useAuth();
+  const logout = Logout();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -134,6 +136,13 @@ const Header = () => {
               >
                 Log In
               </button> */}
+              <button
+                className="flex items-center gap-1 rounded-md bg-black px-3 py-1 text-white hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+                aria-label="Logout"
+                onClick={logout}
+              >
+                Logout
+              </button>
 
               <ShoppingCart size={22} className="cursor-pointer" />
               <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-300">

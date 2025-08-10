@@ -45,7 +45,11 @@ if (process.env.NODE_ENV === 'development') {
   };
 } else {
   corsOptions = {
-    origin: ['https://buyAgain.vercel.app', 'http://localhost:5173'], // remove localhost link from prod when done testing
+    origin: [
+      'https://buyAgain.vercel.app',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+    ], // remove localhost link from prod when done testing
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -123,15 +127,15 @@ app.use(compression());
 // Hide Express version info
 app.disable('x-powered-by');
 
-// convert htpps to https in prod
-if (process.env.NODE_ENV === 'production') {
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
-      return next();
-    }
-    res.redirect('https://' + req.headers.host + req.url);
-  });
-}
+// convert http to https in prod
+// if (process.env.NODE_ENV === 'production') {
+//   app.use((req: Request, res: Response, next: NextFunction) => {
+//     if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+//       return next();
+//     }
+//     res.redirect('https://' + req.headers.host + req.url);
+//   });
+// }
 
 // middleware function to handle unknown routes
 const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
