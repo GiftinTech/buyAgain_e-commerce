@@ -55,7 +55,7 @@ export const getUserCart = catchAsync(
     ]);
 
     // Find and populate the cart items
-    const cartItemsPromise = Cart.find({ user: userId }).populate({
+    const cartItemsPromise = Cart.find({ user: userId }).select('-__v').populate({
       path: 'product',
       select: 'name price discountPercentage thumbnail',
     });
@@ -75,6 +75,7 @@ export const getUserCart = catchAsync(
 
     res.status(200).json({
       status: 'success',
+      results: cartItems.length,
       data: {
         cartItems,
         cartTotals,

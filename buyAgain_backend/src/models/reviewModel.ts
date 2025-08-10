@@ -6,7 +6,6 @@ import {
   Query,
   Document,
   CallbackError,
-  PopulateOptions,
 } from 'mongoose';
 import Product from './productModel';
 
@@ -71,10 +70,11 @@ reviewSchema.pre<Query<IReview[], IReview>>(
     this.populate({
       path: 'product',
       select: 'name', // Selects only the 'name' field of the product
-    } as PopulateOptions).populate({
+    }).populate({
       path: 'user',
       select: 'name', // Selects only the 'name' field of the user
-    } as PopulateOptions);
+    });
+
     next();
   },
 );

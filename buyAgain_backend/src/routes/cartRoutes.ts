@@ -5,7 +5,11 @@ import orderController from '../controllers/orderController';
 
 const router = express.Router();
 
-router.use(authController.protectRoute, authController.restrictTo('user'));
+router.use(
+  authController.protectRoute,
+  authController.restrictTo('user'),
+  orderController.setUserFilter,
+);
 
 router
   .route('/')
@@ -15,7 +19,7 @@ router
 router
   .route('/:itemId')
   .patch(cartController.updateCartQuantity, cartController.updateCartItem) // user update quantity only
-  .delete(cartController.deleteCartItem)  // remove one item 
+  .delete(cartController.deleteCartItem) // remove one item
   .delete(cartController.clearUserCart); // delete cart
 
 export default router;

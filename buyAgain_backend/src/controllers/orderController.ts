@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 import Order, { IOrder } from '../models/orderModel';
 import factory from './controllerFactory';
-import { AuthRequest } from '../types';
+import { CustomRequest } from '../types';
 import User from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
 import Product from '../models/productModel';
@@ -16,7 +16,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 const getCheckoutSession = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new AppError('User not authenticated.', 400));
     }
@@ -187,7 +187,11 @@ export const webhookCheckout = (req: Request, res: Response): void => {
 };
 
 // MW to set the filter for user-specific data
-const setUserFilter = (req: AuthRequest, res: Response, next: NextFunction) => {
+const setUserFilter = (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   // If the user is logged in, set a filter for their ID.
   req.userFilter = req.user ? { user: req.user._id } : {};
   next();

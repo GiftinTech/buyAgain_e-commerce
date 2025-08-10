@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Unprotected and Unrestricted Routes
 router.route('/').get(productController.getAllProducts);
-router.route('/:id').get(productController.getOneProduct);
+router.route('/:id').get(productController.getProduct);
 
 // Protected and Restricted Routes
 router.use(
@@ -14,11 +14,23 @@ router.use(
   authController.restrictTo('seller', 'admin'),
 );
 
-router.route('/').post(productController.addProduct);
+router.route('/addProduct').post(productController.addProduct);
+
 router
-  .route('/:id')
-  .put(productController.updateProduct)
-  .patch(productController.updateProduct)
-  .delete(productController.deleteProduct);
+  .route('/uploadPhoto/:id')
+  .put(
+    productController.getProduct,
+    productController.uploadProductPhotos,
+    productController.resizeProductPhotos,
+    productController.updateProduct,
+  )
+  .patch(
+    productController.getProduct,
+    productController.uploadProductPhotos,
+    productController.resizeProductPhotos,
+    productController.updateProduct,
+  );
+
+router.route('/:id').delete(productController.deleteProduct);
 
 export default router;

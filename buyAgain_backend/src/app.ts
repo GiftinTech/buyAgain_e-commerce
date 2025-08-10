@@ -135,7 +135,7 @@ app.get('/', (req: Request, res: Response) => res.send('API Running 🏃‍♀�
 
 // Mount all routers
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/users/me', userRouter);
+app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/orders', orderRouter);

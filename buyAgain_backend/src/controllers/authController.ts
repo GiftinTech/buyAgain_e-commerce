@@ -8,7 +8,7 @@ import AppError from '../utils/appError';
 import { DecodedToken } from '../types/token';
 import { createSendToken, signToken } from '../utils/jwtHelpers';
 import Email from '../utils/email';
-import { AuthRequest } from '../types';
+import { CustomRequest } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 
@@ -28,7 +28,7 @@ const assignRole = catchAsync(
 );
 
 // MW to check if auth/logged in user is admin
-const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+const requireAdmin = (req: CustomRequest, res: Response, next: NextFunction) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
@@ -160,7 +160,7 @@ const logout = catchAsync(
 
 // protected routes
 const protectRoute = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
+  async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     // i. get token and check if it's in the req.headers
     let token;
     if (
@@ -206,7 +206,7 @@ const protectRoute = catchAsync(
 
 // MW to restrict route access to specific user roles
 const restrictTo = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: CustomRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user?.role))
       return next(
         new AppError('You do not have permission to perform this action.', 403),
@@ -296,7 +296,7 @@ const resetPassword = catchAsync(
 
 // update password handler
 const updatePassword = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction): Promise<any> => {
+  async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
     // i. get user from collection
     const user = await User.findById(req.user?.id).select('+password');
 

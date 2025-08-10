@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import { IUser } from '../models/userModel';
-import { AuthRequest } from '../types';
+import { CustomRequest } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET as string;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN;
@@ -34,7 +34,7 @@ export const signRefreshToken = (id: string | number): string => {
 export const createSendToken = (
   user: IUser,
   statusCode: number,
-  req: AuthRequest,
+  req: CustomRequest,
   res: Response,
 ) => {
   // 1. Sign both tokens

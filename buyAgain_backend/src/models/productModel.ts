@@ -1,6 +1,5 @@
 // src/models/productModel.ts
 import { Schema, Types, Model, model, Document } from 'mongoose';
-import mongooseUniqueValidator from 'mongoose-unique-validator';
 
 import slugify from 'slugify';
 
@@ -130,8 +129,6 @@ const productSchema = new Schema<IProduct>(
 productSchema.index({ price: 1, rating: -1, discountPercentage: -1 });
 productSchema.index({ slug: 1 });
 productSchema.index({ name: 'text', description: 'text' });
-
-productSchema.plugin(mongooseUniqueValidator); // runs unique field validators again when doc is update
 
 productSchema.pre<IProduct>('save', function (next) {
   this.slug = slugify(this.name, { lower: true });

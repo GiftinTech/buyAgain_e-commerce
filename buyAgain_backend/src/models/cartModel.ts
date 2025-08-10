@@ -26,6 +26,7 @@ const cartSchema = new Schema<ICart>(
     },
   },
   {
+    id: false,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },

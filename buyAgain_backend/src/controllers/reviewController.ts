@@ -4,7 +4,7 @@ import { IReview } from '../models/reviewModel';
 import Review from '../models/reviewModel';
 // const catchAsync = require('../utils/catchAsync');
 import factory from './controllerFactory';
-import { AuthRequest } from '../types';
+import { CustomRequest } from '../types';
 
 const getAllReview = factory.getAll<IReview>(Review, 'review');
 const getReview = factory.getOne<IReview>(Review, 'review');
@@ -13,7 +13,7 @@ const updateReview = factory.updateOne<IReview>(Review, 'review');
 const deleteReview = factory.deleteOne<IReview>(Review, 'review');
 
 const setProductAndUserIds = (
-  req: AuthRequest,
+  req: CustomRequest,
   res: Response,
   next: NextFunction,
 ) => {

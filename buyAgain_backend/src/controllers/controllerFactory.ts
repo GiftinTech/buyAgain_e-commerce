@@ -4,7 +4,7 @@ import { Model, Document, Query } from 'mongoose';
 import catchAsync from '../utils/catchAsync';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
-import { AuthRequest } from '../types';
+import { CustomRequest } from '../types';
 
 const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {
@@ -22,7 +22,7 @@ const getAll = <T extends Document>(
   Model: Model<T>,
   dataKey: string,
 ) =>
-  catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  catchAsync(async (req: CustomRequest, res: Response, next: NextFunction) => {
     // Initialize filter as a simple object
     let filter = {};
 
@@ -79,16 +79,13 @@ const getOne = <T extends Document>(
 
 const updateOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req, res, next) => {
-    // 1. Find the document by ID
-    const data = await Model.findById(req.params.id);
+
+    const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    });
 
     if (!data) return next(new AppError(`no document found with that Id`, 404));
-
-    // 2. Update the fields manually
-    Object.assign(data, req.body);
-
-    // 3. Save the document (this runs all validators)
-    await data.save();
 
     res.status(200).json({
       status: 'success',
