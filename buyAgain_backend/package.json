@@ -14,7 +14,7 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write src",
-    "dev": "ts-node-dev --respawn src/server.ts",
+    "dev": "NODE_ENV=development ts-node-dev --respawn src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
     "start-prod": "NODE_ENV=production node dist/server.js"

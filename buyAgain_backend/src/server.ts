@@ -32,6 +32,7 @@ const DB = databaseUri.replace('<db_password>', databasePwd);
 })();
 
 const server = app.listen(port, () => {
+  console.log('-------------------------------');
   console.log(`Server running on port ${port}...`);
   //console.log('All my Endpoints:', listEndpoints(app));
 });

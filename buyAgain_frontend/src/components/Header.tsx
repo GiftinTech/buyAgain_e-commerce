@@ -111,16 +111,16 @@ const Header = () => {
 
         {/* Action buttons */}
         <div className="flex items-center gap-3">
+          {/* Dark mode toggle */}
+          <button
+            onClick={toggleTheme}
+            className="rounded-full p-2 hover:font-bold"
+            title="Toggle theme"
+          >
+            {theme ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           {user ? (
             <>
-              {/* Dark mode toggle */}
-              <button
-                onClick={toggleTheme}
-                className="rounded-full p-2 hover:font-bold"
-                title="Toggle theme"
-              >
-                {theme ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
               <div className="absolute bottom-full left-1/2 z-10 mb-2 w-max -translate-x-1/2 scale-0 transform rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
                 Edit Profile
               </div>

@@ -81,7 +81,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   // Function to fetch the full user profile from buyAgain_backend
   const fetchUserProfile = async (accessToken: string) => {
     try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/api/v1/users/me`, {
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/users/me`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -149,19 +149,16 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     passwordConfirm: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/signup`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-            passwordConfirm,
-          }),
-        },
-      );
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          passwordConfirm,
+        }),
+      });
 
       const data = await response.json();
 
@@ -198,14 +195,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     userProfile?: Data;
   }> => {
     try {
-      const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/login/`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        },
-      );
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
@@ -259,7 +253,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       // Send the access token in the Authorization header.
-      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/api/v1/auth/logout`, {
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -298,7 +292,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/api/v1//auth/forgotPassword`,
+        `${BUYAGAIN_API_BASE_URL}//auth/forgotPassword`,
         {
           method: 'POST',
           headers: {
@@ -342,7 +336,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/api/v1/auth/resetPassword/${reset_token}`,
+        `${BUYAGAIN_API_BASE_URL}/auth/resetPassword/${reset_token}`,
         {
           method: 'POST',
           headers: {

@@ -59,9 +59,6 @@ if (process.env.NODE_ENV === 'development') {
 // Apply the CORS middleware with the chosen options
 app.use(cors(corsOptions));
 
-// Serve static files in public/
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Set security HTTP headers
 app.use(helmet());
 
@@ -89,10 +86,8 @@ app.post(
 
 // Body parser: read data from body into req.body
 app.use(express.json({ limit: '10kb' })); // limits the amount of data that comes in body
-
 // Parse form data (x-www-form-urlencoded) with a size limit
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
 app.use(cookieParser()); // Parse cookies from incoming requests
 
 // Custom MW to make req.query mutable and writable
@@ -110,14 +105,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
-
 // Sanitize all incoming requests against XSS
 app.use(xss());
-
 // Prevent parameter pollution
 app.use(
   hpp({
-    whitelist: ['ratingsQuantity', 'ratingsAverage', 'price'],
+    whitelist: ['rating', 'ratingAverage', 'price'],
   }),
 );
 
@@ -128,14 +121,17 @@ app.use(compression());
 app.disable('x-powered-by');
 
 // convert http to https in prod
-// if (process.env.NODE_ENV === 'production') {
-//   app.use((req: Request, res: Response, next: NextFunction) => {
-//     if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
-//       return next();
-//     }
-//     res.redirect('https://' + req.headers.host + req.url);
-//   });
-// }
+if (process.env.NODE_ENV === 'production') {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      return next();
+    }
+    res.redirect('https://' + req.headers.host + req.url);
+  });
+}
+
+// Serve static files in public/
+app.use(express.static(path.join(__dirname, 'public')));
 
 // middleware function to handle unknown routes
 const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {

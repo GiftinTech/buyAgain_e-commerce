@@ -18,10 +18,7 @@ const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
     });
   });
 
-const getAll = <T extends Document>(
-  Model: Model<T>,
-  dataKey: string,
-) =>
+const getAll = <T extends Document>(Model: Model<T>, dataKey: string) =>
   catchAsync(async (req: CustomRequest, res: Response, next: NextFunction) => {
     // Initialize filter as a simple object
     let filter = {};
@@ -64,33 +61,32 @@ const getOne = <T extends Document>(
 
     if (popOptions) query = query.populate(popOptions);
 
-    const dataKey = await query;
+    const data = await query;
 
-    if (!dataKey)
-      return next(new AppError(`No document found with that Id`, 404));
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        dataKey,
-      },
-    });
-  });
-
-const updateOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
-  catchAsync(async (req, res, next) => {
-
-    const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-
-    if (!data) return next(new AppError(`no document found with that Id`, 404));
+    if (!data) return next(new AppError(`No document found with that Id`, 404));
 
     res.status(200).json({
       status: 'success',
       data: {
         [dataKey]: data,
+      },
+    });
+  });
+
+const updateOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
+  catchAsync(async (req: CustomRequest, res, next) => {
+    const updatedData = await Model.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedData)
+      return next(new AppError(`no document found with that Id`, 404));
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        [dataKey]: updatedData,
       },
     });
   });

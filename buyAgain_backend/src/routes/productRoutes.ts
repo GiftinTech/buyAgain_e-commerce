@@ -1,6 +1,7 @@
 import express from 'express';
 import authController from '../controllers/authController';
 import productController from '../controllers/productController';
+import imageUploadController from '../controllers/productImageUploadController';
 
 const router = express.Router();
 
@@ -17,17 +18,17 @@ router.use(
 router.route('/addProduct').post(productController.addProduct);
 
 router
-  .route('/uploadPhoto/:id')
+  .route('/updateProduct/:id')
   .put(
-    productController.getProduct,
-    productController.uploadProductPhotos,
-    productController.resizeProductPhotos,
+    productController.getProductId,
+    imageUploadController.uploadProductPhotos,
+    imageUploadController.resizeProductPhotos,
     productController.updateProduct,
   )
   .patch(
-    productController.getProduct,
-    productController.uploadProductPhotos,
-    productController.resizeProductPhotos,
+    productController.getProductId,
+    imageUploadController.uploadProductPhotos,
+    imageUploadController.resizeProductPhotos,
     productController.updateProduct,
   );
 

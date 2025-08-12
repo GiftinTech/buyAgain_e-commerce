@@ -108,6 +108,7 @@ const Login = () => {
         <div className="my-2 flex justify-center text-sm text-blue-800">
           <button
             type="button"
+            className="underline-offset-4 hover:underline"
             onClick={() => navigate('/forgot-password')}
             disabled={isSubmitting || loadingAuth}
           >
@@ -119,7 +120,7 @@ const Login = () => {
           Don’t have an account?{' '}
           <button
             onClick={() => navigate('/signup')}
-            className="text-pink-500 hover:underline"
+            className="text-pink-500 underline-offset-4 hover:underline"
             disabled={isSubmitting || loadingAuth}
           >
             Sign up
