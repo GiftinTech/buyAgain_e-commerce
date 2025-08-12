@@ -28,7 +28,11 @@ const assignRole = catchAsync(
 );
 
 // MW to check if auth/logged in user is admin
-const requireAdmin = (req: CustomRequest, res: Response, next: NextFunction) => {
+const requireAdmin = (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
@@ -79,7 +83,6 @@ const signup = catchAsync(
 
     // send welcome email
     const url = `${req.protocol}://${req.get('host')}/api/v1/users/me`;
-    console.log(url);
     const email = new Email(newUser, url);
     await email.sendWelcome(req.body.emailTemplate);
 
@@ -134,8 +137,6 @@ const refreshToken = catchAsync(
     // 4. Issue new access token
     const newAccessToken = signToken(user._id);
 
-    console.log(newAccessToken);
-
     // 5. Send the new access token in response
     res.status(200).json({
       status: 'success',
@@ -160,7 +161,11 @@ const logout = catchAsync(
 
 // protected routes
 const protectRoute = catchAsync(
-  async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<any> => {
     // i. get token and check if it's in the req.headers
     let token;
     if (
@@ -296,7 +301,11 @@ const resetPassword = catchAsync(
 
 // update password handler
 const updatePassword = catchAsync(
-  async (req: CustomRequest, res: Response, next: NextFunction): Promise<any> => {
+  async (
+    req: CustomRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<any> => {
     // i. get user from collection
     const user = await User.findById(req.user?.id).select('+password');
 

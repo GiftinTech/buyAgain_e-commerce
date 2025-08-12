@@ -106,9 +106,6 @@ const resizeProductPhotos = catchAsync(
         req.body.thumbnail = filename; // This will replace the existing thumbnail
       }
 
-      console.log('Final req.body.thumbnail:', req.body.thumbnail);
-      console.log('Final req.body.images:', req.body.images);
-      console.log('Final req.body:', req.body);
       next();
     } catch (err) {
       console.error('Error in resizeProductPhotos:', err);
