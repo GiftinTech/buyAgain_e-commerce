@@ -1,22 +1,65 @@
-import { useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 
 const ResetPassword = () => {
-  const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
-  });
+  const { handlePasswordReset, loadingAuth } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { token } = useParams();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Ensure token is present
+    if (!token) {
+      setError(
+        'Invalid or expired password reset link. Please request a new one.',
+      );
+
+      // Redirect the user to the forgot password page after a short delay
+      const timer = setTimeout(() => {
+        navigate('/forgot-password');
+      }, 3000); // Redirect after 3 seconds
+
+      // Cleanup function to clear the timer if the component unmounts
+      return () => clearTimeout(timer);
+    }
+  }, [token, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+    setError('');
+    setStatus('');
+    setIsSubmitting(true);
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      setIsSubmitting(false);
       return;
     }
-    console.log('Password reset to:', formData.password);
+
+    const result = await handlePasswordReset(
+      token!,
+      newPassword,
+      confirmPassword,
+    );
+
+    setIsSubmitting(false);
+
+    if (result.success) {
+      setStatus(result.message || 'Password reset successful!');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => navigate('/login'), 2000);
+    } else {
+      setError(result.message || 'Something went wrong. Try again.');
+    }
   };
 
   return (
@@ -33,25 +76,41 @@ const ResetPassword = () => {
             type="password"
             name="password"
             placeholder="New Password"
-            value={formData.password}
-            onChange={handleChange}
+            value={newPassword}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setNewPassword(e.target.value);
+            }}
             className="w-full rounded-lg border border-gray-300 p-3 text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
             required
+            disabled={isSubmitting || loadingAuth}
           />
           <input
             type="password"
             name="confirmPassword"
             placeholder="Confirm New Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
+            value={confirmPassword}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setConfirmPassword(e.target.value);
+            }}
             className="w-full rounded-lg border border-gray-300 p-3 text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
             required
+            disabled={isSubmitting || loadingAuth}
           />
+          {error && (
+            <p className="rounded-md bg-red-100 p-2 text-center text-sm text-red-600 dark:bg-red-800 dark:text-red-200">
+              {error}
+            </p>
+          )}
+          {status && (
+            <p className="rounded-md bg-green-50 p-2 text-center text-sm text-green-600 dark:bg-green-200 dark:text-black">
+              {status}
+            </p>
+          )}
           <button
             type="submit"
             className="w-full rounded-lg bg-pink-700 py-3 font-bold text-white transition hover:bg-pink-600"
           >
-            Reset Password
+            {isSubmitting || loadingAuth ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
       </div>

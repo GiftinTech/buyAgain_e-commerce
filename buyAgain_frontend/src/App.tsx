@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
-import ProductListing from './pages/ProductListing';
+import ProductListing from './components/Products';
 import NotFound from './pages/NotFound';
 import Login from './auth/Login';
 import Signup from './auth/Signup';
@@ -24,14 +24,14 @@ function App() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route path="/productListing" element={<ProductListing />} />
+        <Route path="/products" element={<MainLayout />}>
+          <Route index element={<ProductListing />} />
           {/* checkout page */}
         </Route>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

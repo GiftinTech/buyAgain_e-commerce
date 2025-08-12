@@ -16,10 +16,18 @@ interface BuyAgainUser {
 
 interface DataKey {
   dataKey: BuyAgainUser;
+  users?: BuyAgainUser;
 }
 
 interface Data {
   data: DataKey;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
 }
 
 // Shape of the AuthContext value
@@ -46,10 +54,15 @@ interface AuthContextType {
     email: string,
   ) => Promise<{ success: boolean; message?: string }>;
   handlePasswordReset: (
-    reset_token: string,
-    new_password: string,
-    confirm_password: string,
+    token: string,
+    password: string,
+    passwordConfirm: string,
   ) => Promise<{ success: boolean; message?: string }>;
+  handleFetchProduct: () => Promise<{
+    success: boolean;
+    message?: string;
+    products?: Product[];
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -168,12 +181,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       } else {
         return {
           success: false,
-          error:
-            data.email?.[0] ||
-            data.name?.[0] ||
-            data.password?.[0] ||
-            data.detail ||
-            'Signup failed.',
+          error: data.message || 'Signup failed.',
         };
       }
     } catch (error: any) {
@@ -268,7 +276,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         console.error('Server error:', errorData);
       }
       const data = await res.json();
-      console.log(data);
+      console.log(data.message);
 
       localStorage.removeItem('access_token');
       setUser(null);
@@ -292,7 +300,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}//auth/forgotPassword`,
+        `${BUYAGAIN_API_BASE_URL}/auth/forgotPassword`,
         {
           method: 'POST',
           headers: {
@@ -316,8 +324,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         return {
           success: false,
           message:
-            data.email?.[0] ||
-            data.detail ||
+            data.message ||
             'Password reset failed. Please check your email address.',
         };
       }
@@ -329,23 +336,22 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const handlePasswordReset = async (
-    reset_token: string,
-    new_password: string,
-    confirm_password: string,
+    token: string,
+    password: string,
+    passwordConfirm: string,
   ): Promise<{ success: boolean; message?: string }> => {
     setLoadingAuth(true);
     try {
       const response = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/auth/resetPassword/${reset_token}`,
+        `${BUYAGAIN_API_BASE_URL}/auth/resetPassword/${token}`,
         {
-          method: 'POST',
+          method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            reset_token,
-            new_password,
-            confirm_password,
+            password,
+            passwordConfirm,
           }),
         },
       );
@@ -362,8 +368,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         return {
           success: false,
           message:
-            data.email?.[0] ||
-            data.detail ||
+            data.message ||
             'Password reset failed. Token expired, please try again.',
         };
       }
@@ -371,6 +376,41 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error('Error during password reset:', error);
       setLoadingAuth(false);
       return { success: false, message: 'Network error. Please try again.' };
+    }
+  };
+
+  const handleFetchProduct = async (): Promise<{
+    success: boolean;
+    message?: string;
+    products?: Product[];
+  }> => {
+    setLoadingAuth(true);
+    try {
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/products`);
+      const data = await response.json();
+      console.log('PRODUCTS:', data);
+      setLoadingAuth(false);
+
+      if (response.ok) {
+        return {
+          success: true,
+          message: data.message || 'Product Loaded Successfully.',
+          products: data.data.products,
+        };
+      } else {
+        return {
+          success: false,
+          message:
+            data.message || 'Failed to fetch products. Please try again.',
+        };
+      }
+    } catch (error: any) {
+      console.error('Error fetching product:', error);
+      setLoadingAuth(false);
+      return {
+        success: false,
+        message: 'Network error. Please try again.',
+      };
     }
   };
 
@@ -383,6 +423,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     handleLogout,
     handleForgotPassword,
     handlePasswordReset,
+    handleFetchProduct,
   };
 
   return (

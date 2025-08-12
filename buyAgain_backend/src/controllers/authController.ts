@@ -11,6 +11,7 @@ import Email from '../utils/email';
 import { CustomRequest } from '../types';
 
 const jwtSecret = process.env.JWT_SECRET as string;
+const frontend_url = process.env.FRONTEND_URL as string;
 
 if (!jwtSecret) throw new Error('ERROR:❌ jwtSecret not found');
 
@@ -237,7 +238,8 @@ const forgotPassword = catchAsync(
 
     // iii. send the resetToken to user's email
     try {
-      const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/resetPassword/${resetToken}`;
+      const resetURL = `${frontend_url}/reset-password/${resetToken}`; // sets reset link to frontend to redirect to reset page
+      console.log('Frontend reset pwd:', resetURL);
       // send resetURL user's email
       const email = new Email(user, resetURL);
       // use this for postman testing

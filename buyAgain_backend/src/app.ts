@@ -32,31 +32,31 @@ app.get('/ip', (request, response) => {
   console.log(request.headers);
   response.send(request.ip);
 });
+
 // GLOBAL MIDDLEWARES
 // Enable CORS for cross-origin requests
-app.use(cors());
-
 let corsOptions;
 
 if (process.env.NODE_ENV === 'development') {
+  // In development, allow all origins
   corsOptions = {
-    origin: '*',
-    credentials: true,
+    origin: ['http://localhost:5173', 'http://127.0.0.1:3000'],
   };
 } else {
+  // In production, specify allowed origins
   corsOptions = {
     origin: [
       'https://buyAgain.vercel.app',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
-    ], // remove localhost link from prod when done testing
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   };
 }
 
-// Apply the CORS middleware with the chosen options
+// Apply the CORS middleware
 app.use(cors(corsOptions));
 
 // Set security HTTP headers

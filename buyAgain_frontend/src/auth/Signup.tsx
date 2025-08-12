@@ -1,14 +1,41 @@
 import { useState } from 'react';
+import useAuth from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const { handleSignup, loadingAuth } = useAuth();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Signing up:', { name, email, password });
+    setIsSubmitting(true);
+    setFormError('');
+
+    const result = await handleSignup(name, email, password, passwordConfirm);
+
+    if (result.success) {
+      setName('');
+      setEmail('');
+      setPassword('');
+      setPasswordConfirm('');
+
+      navigate('/products');
+    } else {
+      setFormError(
+        result.error ||
+          'An unknown error occurred. Please try signing up again',
+      );
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -20,13 +47,14 @@ const Signup = () => {
           </h1>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-gray-700 dark:text-gray-300">
               Full Name
             </label>
             <input
               type="text"
+              name="user name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
@@ -40,6 +68,7 @@ const Signup = () => {
               Email
             </label>
             <input
+              name="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -54,6 +83,7 @@ const Signup = () => {
               Password
             </label>
             <input
+              name="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -68,6 +98,7 @@ const Signup = () => {
               Confirm Password
             </label>
             <input
+              name="passwordConfirm"
               type="password"
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
@@ -77,11 +108,17 @@ const Signup = () => {
             />
           </div>
 
+          {formError && (
+            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-900 dark:text-red-300">
+              {formError}
+            </p>
+          )}
+
           <button
             type="submit"
             className="w-full rounded-full bg-pink-700 py-2 font-bold text-white transition hover:bg-pink-600"
           >
-            Sign Up
+            {isSubmitting || loadingAuth ? 'Signing you up...' : 'Signup'}
           </button>
         </form>
 

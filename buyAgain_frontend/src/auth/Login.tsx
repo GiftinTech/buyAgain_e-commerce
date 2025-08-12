@@ -19,35 +19,39 @@ const Login = () => {
     setIsSubmitting(true);
     setFormError(''); // Clear previous errors
 
-    // Call the login function from the context with email and password
-    const result = await handleLogin(email, password);
+    try {
+      // Call the login function from the context with email and password
+      const result = await handleLogin(email, password);
 
-    if (result.success) {
-      // Clear form inputs on successful login
-      setEmail('');
-      setPassword('');
+      if (result.success) {
+        // Clear form inputs on successful login
+        setEmail('');
+        setPassword('');
 
-      const userProfile = result?.userProfile;
+        const userProfile = result?.userProfile;
+        console.log('USER:', userProfile);
 
-      // check if logged in user is admin | seller
-      if (
-        userProfile?.data.dataKey.role === 'admin' ||
-        userProfile?.data.dataKey.role === 'seller'
-      ) {
-        //console.log('Logging to Admin');
-
-        navigate('/admin');
+        // check if logged in user is admin | seller
+        // in PROD use userProfile?.data.dataKey.role
+        if (
+          userProfile?.data.users?.role === 'admin' ||
+          userProfile?.data.users?.role === 'seller'
+        ) {
+          navigate('/admin');
+        } else {
+          navigate('/products'); // Navigate ordinary users to the home page
+        }
       } else {
-        //console.log('Logging to users');
-
-        navigate('/'); // Navigate ordinary users to the home page
+        // Display the error message from the API
+        setFormError(result.error || 'An unknown error occurred.');
       }
-    } else {
-      // Display the error message from the API
-      setFormError(result.error || 'An unknown error occurred.');
+    } catch (error) {
+      // This catch block will handle any unexpected errors during the process
+      console.error('Login failed:', error);
+      setFormError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
   };
 
   return (
@@ -65,6 +69,7 @@ const Login = () => {
               Email
             </label>
             <input
+              name="email"
               type="email"
               value={email}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -82,6 +87,7 @@ const Login = () => {
               Password
             </label>
             <input
+              name="password"
               type="password"
               value={password}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
@@ -108,7 +114,7 @@ const Login = () => {
         <div className="my-2 flex justify-center text-sm text-blue-800">
           <button
             type="button"
-            className="underline-offset-4 hover:underline"
+            className="text-blue-600 underline-offset-4 transition-colors hover:text-blue-800 hover:underline focus:outline-none dark:text-blue-400 dark:hover:text-blue-600"
             onClick={() => navigate('/forgot-password')}
             disabled={isSubmitting || loadingAuth}
           >

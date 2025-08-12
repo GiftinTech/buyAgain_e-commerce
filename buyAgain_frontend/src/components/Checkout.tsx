@@ -4,10 +4,11 @@ const Checkout: React.FC = () => {
   return (
     <div className="mx-auto max-w-2xl p-4">
       <h1 className="mb-6 text-2xl font-bold">Checkout</h1>
-      <form className="space-y-4">
+      <form className="space-y-4" name="checkout">
         <div>
           <label className="mb-1 block font-semibold">Full Name</label>
           <input
+            name="user name"
             type="text"
             className="w-full rounded border p-2"
             placeholder="John Doe"

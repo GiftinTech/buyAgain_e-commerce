@@ -4,10 +4,10 @@ import {
   X,
   Search,
   ShoppingCart,
-  User,
   Sun,
   Moon,
   Heart,
+  User,
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +29,12 @@ const Header = () => {
   const { toggleTheme, theme } = useTheme();
 
   const navigate = useNavigate();
+
+  // Base URL for buyAgain buyAgain_backend API
+  // const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
+
+  // In PROD, use user?.data.dataKey.photo;
+  const userProfile = user?.data.users;
 
   const navLinks: NavLinks[] = [
     {
@@ -61,7 +67,7 @@ const Header = () => {
     <header className="bg-white dark:bg-black">
       {/* Top Row */}
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
-        <div className="gap- flex items-center">
+        <div className="flex items-center">
           {/* Menu button for medium/small screens */}
           <button
             className="mr-2 md:block lg:hidden"
@@ -145,9 +151,16 @@ const Header = () => {
               </button>
 
               <ShoppingCart size={22} className="cursor-pointer" />
-              <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-gray-300">
-                <User size={18} />
-                {/* <img src="" alt="user photo" /> */}
+              <div className="flex max-h-9 max-w-9 cursor-pointer rounded-full">
+                {userProfile?.photo ? (
+                  <img
+                    src={userProfile.photo}
+                    alt={userProfile.name || 'user profile photo'}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <User size={18} />
+                )}
               </div>
             </>
           ) : (
