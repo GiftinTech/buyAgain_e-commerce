@@ -46,9 +46,9 @@ if (process.env.NODE_ENV === 'development') {
   // In production, specify allowed origins
   corsOptions = {
     origin: [
-      'https://buyAgain.vercel.app',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
+      'https://buyagain-e-commerce.onrender.com', // prod
+      'http://localhost:5173', // local
+      'http://127.0.0.1:3000', // postman
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
