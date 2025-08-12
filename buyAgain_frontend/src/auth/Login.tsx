@@ -100,7 +100,7 @@ const Login = () => {
             />
           </div>
           {formError && (
-            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-900 dark:text-red-300">
+            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-200 dark:text-black">
               {formError}
             </p>
           )}

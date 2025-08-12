@@ -23,13 +23,6 @@ interface Data {
   data: DataKey;
 }
 
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  images: string[];
-}
-
 // Shape of the AuthContext value
 interface AuthContextType {
   user: Data | null;
@@ -58,11 +51,6 @@ interface AuthContextType {
     password: string,
     passwordConfirm: string,
   ) => Promise<{ success: boolean; message?: string }>;
-  handleFetchProduct: () => Promise<{
-    success: boolean;
-    message?: string;
-    products?: Product[];
-  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -379,41 +367,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const handleFetchProduct = async (): Promise<{
-    success: boolean;
-    message?: string;
-    products?: Product[];
-  }> => {
-    setLoadingAuth(true);
-    try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/products`);
-      const data = await response.json();
-      console.log('PRODUCTS:', data);
-      setLoadingAuth(false);
-
-      if (response.ok) {
-        return {
-          success: true,
-          message: data.message || 'Product Loaded Successfully.',
-          products: data.data.products,
-        };
-      } else {
-        return {
-          success: false,
-          message:
-            data.message || 'Failed to fetch products. Please try again.',
-        };
-      }
-    } catch (error: any) {
-      console.error('Error fetching product:', error);
-      setLoadingAuth(false);
-      return {
-        success: false,
-        message: 'Network error. Please try again.',
-      };
-    }
-  };
-
   const contextValue: AuthContextType = {
     user,
     loadingAuth,
@@ -423,7 +376,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     handleLogout,
     handleForgotPassword,
     handlePasswordReset,
-    handleFetchProduct,
   };
 
   return (

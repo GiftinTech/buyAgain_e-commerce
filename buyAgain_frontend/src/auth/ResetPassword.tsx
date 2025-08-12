@@ -97,7 +97,7 @@ const ResetPassword = () => {
             disabled={isSubmitting || loadingAuth}
           />
           {error && (
-            <p className="rounded-md bg-red-100 p-2 text-center text-sm text-red-600 dark:bg-red-800 dark:text-red-200">
+            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-200 dark:text-black">
               {error}
             </p>
           )}

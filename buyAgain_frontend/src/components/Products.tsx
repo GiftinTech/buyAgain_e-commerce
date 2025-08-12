@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { ShoppingCart, Tag } from 'lucide-react';
-import useAuth from '../hooks/useAuth';
-import type { Product } from '../context/AuthContext';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ShoppingCart, Star, Tag } from 'lucide-react';
+import type { IProduct } from '../context/ShoppingContext';
+import useCart from '../hooks/useShopping';
+import { useNavigate } from 'react-router-dom';
 
 const ProductListing: React.FC = () => {
-  const { handleFetchProduct } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
+  const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  console.log(error);
-  console.log(loading);
+  const navigate = useNavigate();
 
-  const fetchProduct = async () => {
+  const handleNavigateToProductDetails = (getCurrentProductId: string) => {
+    navigate(`/product-details/${getCurrentProductId}`);
+  };
+
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -33,6 +37,41 @@ const ProductListing: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  }, [handleFetchProduct]);
+
+  // Function to render stars based on average rating
+  const renderStars = (averageRating: number) => {
+    // Full stars
+    const stars = [];
+    const ratingValue = averageRating !== undefined ? averageRating : 0;
+
+    const fullStars = Math.floor(ratingValue);
+    const emptyStars = 5 - Math.ceil(ratingValue);
+
+    // Full stars
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(
+        <Star
+          key={`full-${i}`}
+          size={16}
+          fill="currentColor"
+          className="text-yellow-400"
+        />,
+      );
+    }
+
+    // Empty stars
+    for (let i = 0; i < emptyStars; i++) {
+      stars.push(
+        <Star
+          key={`empty-${i}`}
+          size={16}
+          className="text-gray-300" // Unfilled/grey star
+        />,
+      );
+    }
+
+    return stars;
   };
 
   useEffect(() => {
@@ -62,37 +101,74 @@ const ProductListing: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto my-8 grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-4 lg:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] lg:px-12 xl:px-20">
-      {products.map((product: Product) => (
+    <div className="lg:px-18 mx-auto my-10 grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-4 pt-10 lg:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] xl:px-20">
+      {products.map((product: IProduct) => (
         <article
           key={product.id}
-          className="flex flex-col items-center rounded-lg bg-white p-4 shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
+          className="relative flex min-h-[300px] cursor-pointer flex-col overflow-hidden rounded-lg shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
           onMouseEnter={(e) =>
             (e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.15)')
           }
           onMouseLeave={(e) =>
             (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')
           }
+          onClick={() => handleNavigateToProductDetails(product?.id)}
         >
+          {/* Product Image (Background) */}
           <img
-            src={product.images[0]}
-            alt={product.name}
-            className="mb-4 h-40 w-full rounded-sm bg-gray-200 object-contain"
+            src={product.thumbnail}
+            alt={product.title}
+            className="absolute inset-0 z-0 h-full w-full rounded-lg object-cover"
           />
-          <h2 className="mb-2 min-h-[3rem] text-center text-lg font-semibold">
-            {product.name}
-          </h2>
-          <p className="mb-4 flex items-center gap-1 text-xl font-bold text-teal-600">
-            <Tag size={18} />${product.price.toFixed(2)}
-          </p>
-          <button
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm border-none bg-slate-800 px-4 py-2 font-semibold text-white transition-colors duration-300 ease-in-out hover:bg-slate-700"
-            onClick={() => alert(`Added "${product.name}" to cart`)}
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <ShoppingCart size={18} />
-            Add to Cart
-          </button>
+          {/* Overlay */}
+          <div className="absolute inset-0 z-10 rounded-lg bg-black/30 dark:bg-white/10"></div>{' '}
+          <div className="relative z-20 flex h-full flex-col p-4 text-white">
+            {' '}
+            <h2 className="mb-2 min-h-[3rem] text-center text-lg font-semibold">
+              {product.name}
+            </h2>
+            <div className="mt-auto flex w-full items-center justify-between">
+              <p className="mt-auto flex items-center gap-1 text-xl font-bold text-teal-900">
+                <Tag size={18} />${product.price.toFixed(2)}
+              </p>
+              {/* Ratings Display */}
+              {/* Only show ratings if product.rating is a number */}
+              {typeof product.rating === 'number' &&
+                typeof product.ratingQuantity === 'number' && (
+                  <div className="mb-2 flex items-center justify-center">
+                    <div className="flex space-x-0.5">
+                      {renderStars(product.rating)}
+                    </div>
+                    <span className="ml-2 text-sm text-gray-200">
+                      ({product.ratingQuantity}){' '}
+                    </span>
+                  </div>
+                )}
+            </div>
+            <div className="mt-4 flex justify-between text-sm">
+              <button
+                className="rounded-sm bg-black px-5 py-2 font-bold text-white transition-colors hover:bg-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNavigateToProductDetails(product?.id);
+                }}
+              >
+                View Product
+              </button>
+              <button
+                disabled={cartItems.some((item) => item?.id === product?.id)}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(product);
+                }}
+                aria-label={`Add ${product.title} to cart`}
+              >
+                <ShoppingCart size={18} />
+                Add
+              </button>
+            </div>
+          </div>
         </article>
       ))}
     </div>

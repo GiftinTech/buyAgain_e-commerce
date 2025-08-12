@@ -9,7 +9,7 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [formError, setFormError] = useState('');
+  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setFormError('');
+    setError('');
 
     const result = await handleSignup(name, email, password, passwordConfirm);
 
@@ -29,7 +29,7 @@ const Signup = () => {
 
       navigate('/products');
     } else {
-      setFormError(
+      setError(
         result.error ||
           'An unknown error occurred. Please try signing up again',
       );
@@ -60,6 +60,7 @@ const Signup = () => {
               className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your name"
               required
+              disabled={isSubmitting || loadingAuth}
             />
           </div>
 
@@ -75,6 +76,7 @@ const Signup = () => {
               className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your email"
               required
+              disabled={isSubmitting || loadingAuth}
             />
           </div>
 
@@ -90,6 +92,7 @@ const Signup = () => {
               className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your password"
               required
+              disabled={isSubmitting || loadingAuth}
             />
           </div>
 
@@ -105,12 +108,13 @@ const Signup = () => {
               className="w-full rounded-full border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-700"
               placeholder="Enter your password"
               required
+              disabled={isSubmitting || loadingAuth}
             />
           </div>
 
-          {formError && (
-            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-900 dark:text-red-300">
-              {formError}
+          {error && (
+            <p className="rounded-md bg-red-50 p-2 text-center text-sm text-red-600 dark:bg-red-200 dark:text-black">
+              {error}
             </p>
           )}
 

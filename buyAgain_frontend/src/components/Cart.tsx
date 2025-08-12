@@ -1,42 +1,17 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+import { useNavigate } from 'react-router-dom';
+import useCart from '../hooks/useShopping';
 
 const Cart: React.FC = () => {
-  const cartItems: CartItem[] = [
-    {
-      id: '1',
-      name: 'Wireless Headphones',
-      price: 120,
-      quantity: 1,
-      image: '/images/headphones.jpg',
-    },
-    {
-      id: '2',
-      name: 'Smartphone',
-      price: 699,
-      quantity: 2,
-      image: '/images/phone.jpg',
-    },
-  ];
-
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0,
-  );
+  const { cartItems } = useCart();
+  const navigate = useNavigate();
 
   return (
-    <div className="mx-auto max-w-4xl p-4">
-      <h1 className="mb-6 text-2xl font-bold">Your Cart</h1>
+    <div className="mx-auto max-w-5xl py-4 max-md:max-w-xl">
+      <h1 className="text-center text-2xl font-bold text-white">Your Cart</h1>
       {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <p>No items in cart! Please add some items</p>
       ) : (
         <div className="space-y-4">
           {cartItems.map((item) => (
@@ -46,7 +21,7 @@ const Cart: React.FC = () => {
             >
               <div className="flex items-center gap-4">
                 <img
-                  src={item.image}
+                  src={item.thumbnail}
                   alt={item.name}
                   className="h-16 w-16 rounded object-cover"
                 />
@@ -65,10 +40,40 @@ const Cart: React.FC = () => {
           ))}
           <div className="mt-6 flex items-center justify-between text-lg font-bold">
             <span>Total</span>
-            <span>${totalPrice}</span>
+            <span>Get the total from backend</span>
           </div>
         </div>
       )}
+      <div className="h-max rounded-sm bg-gray-100 p-4">
+        <h3 className="bord-gray-300 border-b pb-3 text-xl font-extrabold text-gray-950">
+          Order Summary
+        </h3>
+        <ul className="mt-4 space-y-2 text-gray-700">
+          <p className="flex flex-wrap gap-4 text-sm font-bold">
+            Total{' '}
+            <span>
+              $
+              {cartItems
+                .reduce((acc, curr) => acc + curr.totalPrice, 0)
+                .toFixed(2)}
+            </span>
+          </p>
+        </ul>
+        <div className="mt-5 flex gap-2">
+          <button
+            disabled={!(cartItems?.length > 0)}
+            className="tex-white bg-black px-4 py-3 text-sm font-extrabold disabled:opacity-50"
+          >
+            Checkout
+          </button>
+          <button
+            onClick={() => navigate('/products')}
+            className="bg-black px-4 py-3 text-sm font-extrabold text-white"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
