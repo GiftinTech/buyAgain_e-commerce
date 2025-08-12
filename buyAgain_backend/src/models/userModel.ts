@@ -37,7 +37,8 @@ const userSchema = new Schema<IUser>(
     },
     photo: {
       type: String,
-      default: 'default.jpg',
+      default:
+        'https://res.cloudinary.com/dvbbvnwkq/image/upload/v1754969274/users/ruzhyrxb2r4goi6vkncs.jpg',
     },
     role: {
       type: String,

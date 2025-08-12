@@ -1,7 +1,6 @@
 import express from 'express';
 import userController from '../controllers/userController';
 import authController from '../controllers/authController';
-import imageUploadController from '../controllers/userImageUploadController';
 import imagesURLController from '../controllers/imagesURLController';
 
 const router = express.Router();
@@ -17,8 +16,8 @@ router
   .route('/me')
   .get(userController.getMe, userController.getUser)
   .patch(
-    imageUploadController.uploadUserPhoto,
-    imageUploadController.resizeUserPhoto,
+    imagesURLController.uploadUserPhoto,
+    imagesURLController.resizeUserPhoto,
     imagesURLController.uploadImagesToCloudinary,
     userController.updateUser,
   );

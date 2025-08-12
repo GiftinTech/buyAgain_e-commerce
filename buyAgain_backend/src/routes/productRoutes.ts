@@ -1,7 +1,7 @@
 import express from 'express';
 import authController from '../controllers/authController';
 import productController from '../controllers/productController';
-import imageUploadController from '../controllers/productImageUploadController';
+import productImageUploadController from '../controllers/productImageUploadController';
 
 const router = express.Router();
 
@@ -21,14 +21,14 @@ router
   .route('/updateProduct/:id')
   .put(
     productController.getProductId,
-    imageUploadController.uploadProductPhotos,
-    imageUploadController.resizeProductPhotos,
+    productImageUploadController.uploadProductPhotos,
+    productImageUploadController.processProductPhotos,
     productController.updateProduct,
   )
   .patch(
     productController.getProductId,
-    imageUploadController.uploadProductPhotos,
-    imageUploadController.resizeProductPhotos,
+    productImageUploadController.uploadProductPhotos,
+    productImageUploadController.processProductPhotos,
     productController.updateProduct,
   );
 

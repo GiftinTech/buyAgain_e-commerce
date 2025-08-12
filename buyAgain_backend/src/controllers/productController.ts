@@ -6,6 +6,19 @@ import AppError from '../utils/appError';
 import { CustomRequest } from '../types';
 
 // product handlers
+const getProductId = catchAsync(async (req: CustomRequest, res, next) => {
+  // Fetch the product document from the database
+  const product = await Product.findById(req.params.id);
+
+  // Handle case where product is not found
+  if (!product) {
+    return next(new AppError('No product found with that ID', 404));
+  }
+
+  res.locals.product = product;
+  req.product = product;
+  next();
+});
 
 const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
   // Get the existing product from the request (set by getProduct middleware)
@@ -17,10 +30,9 @@ const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
   // Build updated data object
   const updatedData = {
     ...product, // start with existing product data
-    ...req.body, // overwrite with any fields from request body
+    ...req.body,
     images: [
-      // merge old + new images to prevent overwriting
-      ...(product.images || []),
+      ...(Array.isArray(product.images) ? product.images : []),
       ...((req.body.images as string[]) || []),
     ],
   };
@@ -47,21 +59,6 @@ const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
       product: updatedProduct,
     },
   });
-});
-
-const getProductId = catchAsync(async (req: CustomRequest, res, next) => {
-  // Fetch the product document from the database
-  const product = await Product.findById(req.params.id);
-
-  // Handle case where product is not found
-  if (!product) {
-    return next(new AppError('No product found with that ID', 404));
-  }
-
-  // Attach the product to the request object
-  req.product = product;
-
-  next();
 });
 
 const getAllProducts = factory.getAll<IProduct>(Product, 'products');

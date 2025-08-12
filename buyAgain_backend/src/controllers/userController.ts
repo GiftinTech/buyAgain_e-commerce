@@ -45,7 +45,7 @@ const updateUser = catchAsync(async (req: CustomRequest, res, next) => {
   const filteredBody = filterObj(req.body, 'name', 'email', 'photo');
 
   // 3) Update user document
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+  const updatedUser = await User.findByIdAndUpdate(req.user?.id, filteredBody, {
     new: true,
     runValidators: true,
   }).select('-__v');
