@@ -13,10 +13,6 @@ dist-ssr
 *.local
 *.env
 
-# Components
-Header2.tsx
-AdminDashboard.tsx
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
