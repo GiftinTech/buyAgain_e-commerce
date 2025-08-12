@@ -24,7 +24,7 @@ function App() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/products" element={<MainLayout />}>
+        <Route path="/" element={<MainLayout />}>
           <Route index element={<ProductListing />} />
           {/* checkout page */}
         </Route>
