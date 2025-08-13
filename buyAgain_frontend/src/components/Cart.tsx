@@ -52,10 +52,7 @@ const Cart: React.FC = () => {
           <p className="flex flex-wrap gap-4 text-sm font-bold">
             Total{' '}
             <span>
-              $
-              {cartItems
-                .reduce((acc, curr) => acc + curr.totalPrice, 0)
-                .toFixed(2)}
+              ${cartItems.reduce((acc, curr) => acc + curr.price, 0).toFixed(2)}
             </span>
           </p>
         </ul>

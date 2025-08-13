@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect and useCallback
 import {
   Menu,
   X,
@@ -14,6 +14,13 @@ import { useNavigate } from 'react-router-dom';
 import useTheme from '../hooks/useTheme';
 import Logout from '../auth/Logout';
 
+// Assuming a basic structure for products fetched from API for search terms
+interface IProductSearch {
+  category: string;
+  tags: string[];
+  // You can add 'title' or 'name' here if you want to use product names as search terms
+}
+
 interface NavLinks {
   name: string;
   url: string;
@@ -25,16 +32,16 @@ const Header = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [popularSearchTerms, setPopularSearchTerms] = useState<string[]>([]); // state for dynamic search terms
 
   const { toggleTheme, theme } = useTheme();
 
   const navigate = useNavigate();
 
   // Base URL for buyAgain buyAgain_backend API
-  // const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
+  const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
-  // In PROD, use user?.data.dataKey.photo;
-  const userProfile = user?.data.users;
+  const userProfile = user?.data.users; // In PROD, use user?.data.dataKey.photo;
 
   const navLinks: NavLinks[] = [
     {
@@ -51,20 +58,51 @@ const Header = () => {
     },
   ];
 
-  const popularSearches = [
-    'Sneakers',
-    'Wristwatches',
-    'Perfumes',
-    'Laptops',
-    'Bags',
-  ];
+  // Fetch popular search terms dynamically
+  useEffect(() => {
+    const fetchPopularSearchData = async () => {
+      try {
+        const res = await fetch(`${BUYAGAIN_API_BASE_URL}/products?limit=10`);
 
-  const filteredSearches = popularSearches.filter((search) =>
-    search.toLowerCase().includes(searchValue.toLowerCase()),
+        if (!res.ok) {
+          console.error('Failed to fetch popular search data:', res.statusText);
+          return;
+        }
+        const result = await res.json();
+        const products: IProductSearch[] = result.data.products;
+
+        // Extract unique categories and tags
+        const extractedTerms = new Set<string>();
+        products.forEach((product) => {
+          if (product.category) {
+            extractedTerms.add(product.category);
+          }
+          if (product.tags) {
+            product.tags.forEach((tag) => extractedTerms.add(tag));
+          }
+          // If you want product titles as popular searches:
+          // if (product.title) {
+          //   extractedTerms.add(product.title);
+          // }
+        });
+        setPopularSearchTerms(Array.from(extractedTerms));
+      } catch (err) {
+        console.error('Error fetching popular search terms:', err);
+      }
+    };
+
+    fetchPopularSearchData();
+  }, [BUYAGAIN_API_BASE_URL]); // Dependent on backend
+
+  // Filter the dynamic search terms based on user input
+  const filteredSearches = popularSearchTerms.filter((term) =>
+    term.toLowerCase().includes(searchValue.toLowerCase()),
   );
 
   return (
-    <header className="bg-white dark:bg-black">
+    <header className="relative z-50 bg-white dark:bg-black">
+      {' '}
+      {/* Added z-50 here */}
       {/* Top Row */}
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex items-center">
@@ -72,6 +110,7 @@ const Header = () => {
           <button
             className="mr-2 md:block lg:hidden"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -93,19 +132,27 @@ const Header = () => {
               onBlur={() => setTimeout(() => setSearchFocus(false), 150)}
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
+              aria-label="Search products"
             />
             <button className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500">
               <Search size={18} />
             </button>
           </div>
 
-          {/* Dropdown of popular searches */}
+          {/* Dropdown of popular searches (now dynamic) */}
           {searchFocus && filteredSearches.length > 0 && (
-            <div className="absolute left-0 top-full mt-2 w-full rounded-lg bg-white p-2 shadow-lg dark:bg-gray-900">
-              {filteredSearches.map((item: string, i) => (
+            <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg bg-white p-2 shadow-lg dark:bg-gray-900">
+              {' '}
+              {/* Added z-50 here for the dropdown */}
+              {filteredSearches.map((item: string) => (
                 <div
-                  key={i}
+                  key={item} // Changed key to item (string) for uniqueness if terms are unique
                   className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
+                  onClick={() => {
+                    setSearchValue(item); // Set search input to clicked term
+                    setSearchFocus(false); // Close dropdown
+                    // You might want to trigger a search here, e.g., navigate(`/search?q=${item}`);
+                  }}
                 >
                   <Search size={16} className="text-pink-500" />
                   <span>{item}</span>
@@ -122,26 +169,23 @@ const Header = () => {
             onClick={toggleTheme}
             className="rounded-full p-2 hover:font-bold"
             title="Toggle theme"
+            aria-label="Toggle dark mode"
           >
-            {theme ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}{' '}
+            {/* Updated based on your theme state */}
           </button>
           {user ? (
             <>
-              <div className="absolute bottom-full left-1/2 z-10 mb-2 w-max -translate-x-1/2 scale-0 transform rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
+              <div className="z-60 absolute bottom-full left-1/2 mb-2 w-max -translate-x-1/2 scale-0 transform rounded bg-gray-800 px-2 py-1 text-sm text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
                 Edit Profile
               </div>
               <button
                 className="inline-flex items-center gap-1 font-semibold hover:text-pink-500"
-                onClick={() => alert('Get Wishlist Items')}
+                onClick={() => alert('Get Wishlist Items')} // Consider replacing alert()
+                aria-label="View wishlist"
               >
                 <Heart size={18} />
               </button>
-              {/* <button
-                className="inline-flex items-center gap-1 rounded-full bg-black px-4 py-2 font-semibold text-white hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-gray-200"
-                onClick={() => navigate('/login')}
-              >
-                Log In
-              </button> */}
               <button
                 className="flex items-center gap-1 rounded-md bg-black px-3 py-1 text-white hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-gray-200"
                 aria-label="Logout"
@@ -149,14 +193,18 @@ const Header = () => {
               >
                 Logout
               </button>
-
-              <ShoppingCart size={22} className="cursor-pointer" />
+              <ShoppingCart
+                size={22}
+                className="cursor-pointer"
+                onClick={() => navigate('/cart')}
+              />{' '}
+              {/* Added onClick for cart */}
               <div className="flex max-h-9 max-w-9 cursor-pointer rounded-full">
                 {userProfile?.photo ? (
                   <img
                     src={userProfile.photo}
                     alt={userProfile.name || 'user profile photo'}
-                    className="rounded-full"
+                    className="h-full w-full rounded-full object-cover" // Added object-cover to prevent distortion
                   />
                 ) : (
                   <User size={18} />
@@ -181,7 +229,6 @@ const Header = () => {
           )}
         </div>
       </div>
-
       {/* Search Input for small screens */}
       <div className="relative mx-auto w-2/3 lg:hidden">
         <div className="relative mb-2 w-full">
@@ -193,17 +240,25 @@ const Header = () => {
             onBlur={() => setTimeout(() => setSearchFocus(false), 150)}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
+            aria-label="Search products"
           />
           <button className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500">
             <Search size={18} />
           </button>
         </div>
         {searchFocus && filteredSearches.length > 0 && (
-          <div className="absolute left-0 top-full mt-2 w-full rounded-lg bg-white p-2 shadow-lg dark:bg-gray-900">
-            {filteredSearches.map((item: string, i) => (
+          <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg bg-white p-2 shadow-lg dark:bg-gray-900">
+            {' '}
+            {/* Added z-50 here */}
+            {filteredSearches.map((item: string) => (
               <div
-                key={i}
+                key={item} // Changed key to item
                 className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
+                onClick={() => {
+                  setSearchValue(item); // Set search input to clicked term
+                  setSearchFocus(false); // Close dropdown
+                  // Trigger search logic here
+                }}
               >
                 <Search size={16} className="text-pink-500" />
                 <span>{item}</span>
@@ -212,10 +267,11 @@ const Header = () => {
           </div>
         )}
       </div>
-
       {/* Sidebar Navigation */}
       {sidebarOpen && (
-        <div className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-black md:block lg:hidden">
+        <div className="z-40 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-black md:block lg:hidden">
+          {' '}
+          {/* Adjusted z-index for sidebar */}
           <nav className="flex flex-col space-y-3 p-4">
             {navLinks.map((link, i) => (
               <a

@@ -1,25 +1,49 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prefer-const */
+
 import {
   createContext,
   useCallback,
   useEffect,
   useState,
   type ReactNode,
+  type SetStateAction,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // interface
 interface IProduct {
-  id: string;
+  _id: string; // Product ID from DB
   name: string;
   price: number;
-  images: string[];
-  title?: string;
+  description: string;
   thumbnail: string;
+  images: string[];
+  brand: string;
+  category: string;
+  availabilityStatus: string;
+  discountPercentage: number;
+  dimensions: { height: number; depth: number };
+  meta: {
+    barcode: string;
+    qrCode: string;
+    createdAt: string;
+    updatedAt: string;
+  };
   rating: number;
   ratingQuantity: number;
+  returnPolicy: string;
+  shippingInformation: string;
+  sku: string;
+  slug: string;
+  stock: number;
+  tags: string[];
+  title: string;
+  warrantyInformation: string;
+  weight: number;
+  createdAt: string;
+  updatedAt: string;
+  id: string; // The frontend 'id' which maps to _id from DB sometimes. Keeping for consistency with original.
 }
 
 interface BuyAgainUser {
@@ -40,16 +64,17 @@ interface Data {
 }
 
 interface ICart extends IProduct {
+  id: string;
   quantity: number;
-  totalPrice: number;
 }
 
 interface ShopContextType {
   user: Data | null;
   loading: boolean;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  error: string;
   setError: React.Dispatch<React.SetStateAction<string>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  cartError: string;
+  setCartError: React.Dispatch<React.SetStateAction<string>>;
   productList: IProduct[];
   setProductList: React.Dispatch<React.SetStateAction<IProduct[]>>;
   productDetails: IProduct | null;
@@ -91,7 +116,7 @@ interface ShopProviderProps {
 const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   const [user, setUser] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const [cartError, setCartError] = useState<string>('');
 
   const [productList, setProductList] = useState<IProduct[]>([]);
   const [productDetails, setProductDetails] = useState<IProduct | null>(null);
@@ -127,17 +152,17 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
             data.message || 'Failed to fetch products. Please try again.',
         };
       }
-    } catch (error: unknown) {
-      setError(
-        'Error fetching products from the server. Please try check your internet connection or try again later.',
+    } catch (cartError: unknown) {
+      setCartError(
+        'cartError fetching products from the server. Please try check your internet connection or try again later.',
       );
-      console.log('Error fetching products:', error);
+      console.log('cartError fetching products:', cartError);
       setProductList([]);
       setLoading(false);
 
       return {
         success: false,
-        message: 'Network error. Please try again.',
+        message: 'Network cartError. Please try again.',
       };
     }
   };
@@ -145,12 +170,12 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   // Fetch Cart Items
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setCartError('');
     try {
       const token = getAuthToken();
       if (!token) {
         // Handle unauthenticated user. Maybe redirect to login or show a message.
-        setError('Authentication required to load cart.');
+        setCartError('Authentication required to load cart.');
         setLoading(false);
         // navigate('/login'); // Optional: redirect to login if cart depends on auth
         return;
@@ -165,17 +190,19 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch cart items.');
+        const cartErrorData = await response.json();
+        throw new Error(cartErrorData.message || 'Failed to fetch cart items.');
       }
 
       const data = await response.json();
       // Assuming your API returns the cart items in a 'cart' property
       setCartItems(data.cart || []);
     } catch (error: unknown) {
-      console.error('Error fetching cart:', error);
-      setError(
-        error instanceof Error ? error.message : 'An unknown error occurred.',
+      console.error('cartError fetching cart:', error);
+      setCartError(
+        error instanceof Error
+          ? error.message
+          : 'An unknown cartError occurred.',
       );
     } finally {
       setLoading(false);
@@ -190,11 +217,11 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   // Adds product or increments quantity in backend cart
   const handleAddToCart = async (productDetails: IProduct) => {
     setLoading(true);
-    setError('');
+    setCartError('');
     try {
       const token = getAuthToken();
       if (!token) {
-        setError('Authentication required to add to cart.');
+        setCartError('Authentication required to add to cart.');
         navigate('/login'); // Redirect to login if unauthenticated
         return;
       }
@@ -212,16 +239,16 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add item to cart.');
+        const cartErrorData = await response.json();
+        throw new Error(cartErrorData.message || 'Failed to add item to cart.');
       }
 
       // Re-fetch the entire cart to ensure state consistency after modification
       await fetchCartItems();
       navigate('/cart'); // Navigate to cart page after successful addition
-    } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      setError(error.message);
+    } catch (cartError: any) {
+      console.error('cartError adding to cart:', cartError);
+      setCartError(cartError.message);
     } finally {
       setLoading(false);
     }
@@ -233,11 +260,11 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     isFullyRemoved: boolean,
   ) => {
     setLoading(true);
-    setError('');
+    setCartError('');
     try {
       const token = getAuthToken();
       if (!token) {
-        setError('Authentication required to modify cart.');
+        setCartError('Authentication required to modify cart.');
         navigate('/login'); // Redirect to login if unauthenticated
         return;
       }
@@ -289,17 +316,17 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const cartErrorData = await response.json();
         throw new Error(
-          errorData.message || 'Failed to remove item from cart.',
+          cartErrorData.message || 'Failed to remove item from cart.',
         );
       }
 
       // Re-fetch the entire cart to ensure state consistency
       await fetchCartItems();
-    } catch (error: any) {
-      console.error('Error removing from cart:', error);
-      setError(error.message);
+    } catch (cartError: any) {
+      console.error('cartError removing from cart:', cartError);
+      setCartError(cartError.message);
     } finally {
       setLoading(false);
     }
@@ -310,7 +337,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   }, []);
 
   //console.log(productList);
-  console.log(cartItems);
+  console.log('CARTITEMS:', cartItems);
 
   const contextValue: ShopContextType = {
     user,
@@ -318,8 +345,8 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     setLoading,
     productList,
     setProductList,
-    error,
-    setError,
+    cartError,
+    setCartError,
     productDetails,
     setProductDetails,
     handleFetchProduct,
@@ -327,6 +354,9 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     handleAddToCart,
     handleRemoveFromCart,
     fetchCartItems,
+    setError: function (value: SetStateAction<string>): void {
+      throw new Error('Function not implemented.');
+    },
   };
 
   return (
@@ -337,4 +367,4 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
 };
 
 export default ShoppingCartProvider;
-export { type IProduct, ShoppingCartContext };
+export { type IProduct, type ICart, ShoppingCartContext };
