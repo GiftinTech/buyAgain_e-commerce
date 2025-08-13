@@ -64,7 +64,7 @@ const Cart: React.FC = () => {
             Checkout
           </button>
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate('/')}
             className="bg-black px-4 py-3 text-sm font-extrabold text-white"
           >
             Continue Shopping

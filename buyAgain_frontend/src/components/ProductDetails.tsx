@@ -122,7 +122,7 @@ const ProductDetailsPage = () => {
           {cartError || 'Product not found or an error occurred.'}
         </h3>
         <button
-          className="rounded-sm bg-black px-4 text-white dark:bg-white dark:text-black"
+          className="text-md mt-5 rounded-full border border-pink-700 bg-pink-800 p-3 font-bold text-pink-300 transition-colors hover:bg-pink-700"
           onClick={() => navigate('/')}
         >
           Back to Products
@@ -325,6 +325,12 @@ const ProductDetailsPage = () => {
               </div>
             )}
           </div>
+          <button
+            className="text-md mt-5 rounded-full border border-pink-700 bg-pink-800 p-3 font-bold text-pink-300 transition-colors hover:bg-pink-700"
+            onClick={() => navigate('/')}
+          >
+            Back to Products
+          </button>
         </div>
       </div>
     </div>

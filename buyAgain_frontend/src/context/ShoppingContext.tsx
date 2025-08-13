@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
@@ -7,7 +6,6 @@ import {
   useEffect,
   useState,
   type ReactNode,
-  type SetStateAction,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -71,10 +69,9 @@ interface ICart extends IProduct {
 interface ShopContextType {
   user: Data | null;
   loading: boolean;
-  setError: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   cartError: string;
-  setCartError: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
   productList: IProduct[];
   setProductList: React.Dispatch<React.SetStateAction<IProduct[]>>;
   productDetails: IProduct | null;
@@ -96,11 +93,9 @@ interface ShopContextType {
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
-// Placeholder for authentication token retrieval
-// In a real app, you'd get this from your AuthContext or similar global state
 const getAuthToken = (): string | null => {
-  // Example: Retrieve token from localStorage or your authentication state
-  return localStorage.getItem('authToken'); // Adjust based on your auth implementation
+  // temporary remove it and authenticate from AuthContext not local storage
+  return localStorage.getItem('access_token');
 };
 
 //create the context
@@ -116,7 +111,7 @@ interface ShopProviderProps {
 const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   const [user, setUser] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
-  const [cartError, setCartError] = useState<string>('');
+  const [cartError, setError] = useState<string>('');
 
   const [productList, setProductList] = useState<IProduct[]>([]);
   const [productDetails, setProductDetails] = useState<IProduct | null>(null);
@@ -125,6 +120,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   >([]);
 
   const navigate = useNavigate();
+  console.log(setUser);
 
   // Get all products
   const handleFetchProduct = async (): Promise<{
@@ -153,7 +149,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
         };
       }
     } catch (cartError: unknown) {
-      setCartError(
+      setError(
         'cartError fetching products from the server. Please try check your internet connection or try again later.',
       );
       console.log('cartError fetching products:', cartError);
@@ -162,7 +158,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
 
       return {
         success: false,
-        message: 'Network cartError. Please try again.',
+        message: 'Network error. Please try again.',
       };
     }
   };
@@ -170,12 +166,12 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   // Fetch Cart Items
   const fetchCartItems = useCallback(async () => {
     setLoading(true);
-    setCartError('');
+    setError('');
     try {
       const token = getAuthToken();
       if (!token) {
         // Handle unauthenticated user. Maybe redirect to login or show a message.
-        setCartError('Authentication required to load cart.');
+        setError('Authentication required to load cart.');
         setLoading(false);
         // navigate('/login'); // Optional: redirect to login if cart depends on auth
         return;
@@ -199,7 +195,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       setCartItems(data.cart || []);
     } catch (error: unknown) {
       console.error('cartError fetching cart:', error);
-      setCartError(
+      setError(
         error instanceof Error
           ? error.message
           : 'An unknown cartError occurred.',
@@ -217,11 +213,11 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   // Adds product or increments quantity in backend cart
   const handleAddToCart = async (productDetails: IProduct) => {
     setLoading(true);
-    setCartError('');
+    setError('');
     try {
       const token = getAuthToken();
       if (!token) {
-        setCartError('Authentication required to add to cart.');
+        setError('Authentication required to add to cart.');
         navigate('/login'); // Redirect to login if unauthenticated
         return;
       }
@@ -248,7 +244,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       navigate('/cart'); // Navigate to cart page after successful addition
     } catch (cartError: any) {
       console.error('cartError adding to cart:', cartError);
-      setCartError(cartError.message);
+      setError(cartError.message);
     } finally {
       setLoading(false);
     }
@@ -260,11 +256,11 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     isFullyRemoved: boolean,
   ) => {
     setLoading(true);
-    setCartError('');
+    setError('');
     try {
       const token = getAuthToken();
       if (!token) {
-        setCartError('Authentication required to modify cart.');
+        setError('Authentication required to modify cart.');
         navigate('/login'); // Redirect to login if unauthenticated
         return;
       }
@@ -326,7 +322,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       await fetchCartItems();
     } catch (cartError: any) {
       console.error('cartError removing from cart:', cartError);
-      setCartError(cartError.message);
+      setError(cartError.message);
     } finally {
       setLoading(false);
     }
@@ -346,7 +342,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     productList,
     setProductList,
     cartError,
-    setCartError,
+    setError,
     productDetails,
     setProductDetails,
     handleFetchProduct,
@@ -354,9 +350,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     handleAddToCart,
     handleRemoveFromCart,
     fetchCartItems,
-    setError: function (value: SetStateAction<string>): void {
-      throw new Error('Function not implemented.');
-    },
   };
 
   return (
