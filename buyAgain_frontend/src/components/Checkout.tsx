@@ -10,20 +10,20 @@ const Checkout: React.FC = () => {
           <input
             name="user name"
             type="text"
-            className="w-full rounded border p-2"
-            placeholder="John Doe"
+            className="w-full rounded border p-2 dark:text-black"
+            placeholder="Jane Doe"
           />
         </div>
         <div>
           <label className="mb-1 block font-semibold">Shipping Address</label>
           <textarea
-            className="w-full rounded border p-2"
+            className="w-full rounded border p-2 dark:text-black"
             placeholder="123 Main St"
           ></textarea>
         </div>
         <div>
           <label className="mb-1 block font-semibold">Payment Method</label>
-          <select className="w-full rounded border p-2">
+          <select className="w-full rounded border p-2 dark:text-black">
             <option>Credit Card</option>
             <option>PayPal</option>
             <option>Bank Transfer</option>

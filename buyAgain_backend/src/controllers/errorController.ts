@@ -29,6 +29,13 @@ const handleJWTError = (): AppError =>
 const handleJWTExpiredError = (): AppError =>
   new AppError('Your token has expired. Please log in again.', 401);
 
+// handles mongooseError for buffering timed out
+const handleMongooseError = (): AppError =>
+  new AppError(
+    'Cannot load requests at the moment. Please try again later.',
+    500,
+  );
+
 // Sends detailed error in development mode
 const sendErrorDev = (err: any, res: Response): void => {
   res.status(err.statusCode).json({
@@ -87,6 +94,8 @@ const globalErrorHandler = (
     error = handleJWTError();
   } else if (error.name === 'TokenExpiredError') {
     error = handleJWTExpiredError();
+  } else if (error.name === 'MongooseError') {
+    error = handleMongooseError();
   }
 
   // Send the error response based on environment

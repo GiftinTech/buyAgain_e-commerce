@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import getAuthToken from '../utils/getAuthToken';
 
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 // Shape of the buyAgain User object
 interface BuyAgainUser {
-  id: number;
+  _id: string;
   name: string;
   email: string;
   photo?: string;
@@ -26,6 +27,7 @@ interface Data {
 // Shape of the AuthContext value
 interface AuthContextType {
   user: Data | null;
+  token: string | null;
   loadingAuth: boolean;
   appError: string;
   handleSignup: (
@@ -61,6 +63,7 @@ interface AuthProviderProps {
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<Data | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
   const [appError, setAppError] = useState<string>('');
 
@@ -68,6 +71,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const decodeJwt = (token: string): boolean => {
     try {
       const decoded = jwtDecode(token);
+
       if (decoded.exp && decoded.exp * 1000 > Date.now()) {
         return true; // Token is valid and not expired
       }
@@ -81,6 +85,12 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Function to fetch the full user profile from buyAgain_backend
   const fetchUserProfile = async (accessToken: string) => {
+    const token = getAuthToken();
+    if (!token) {
+      // handle missing token
+      return null;
+    }
+
     try {
       const response = await fetch(`${BUYAGAIN_API_BASE_URL}/users/me`, {
         method: 'GET',
@@ -205,6 +215,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         if (typeof accessToken === 'string' && accessToken.length > 0) {
           localStorage.setItem('access_token', accessToken);
           const isTokenValid = decodeJwt(accessToken);
+          setToken(accessToken);
 
           if (isTokenValid) {
             const userProfile = await fetchUserProfile(accessToken);
@@ -369,6 +380,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const contextValue: AuthContextType = {
     user,
+    token,
     loadingAuth,
     appError,
     handleSignup,

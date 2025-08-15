@@ -10,6 +10,7 @@ import ResetPassword from './auth/ResetPassword';
 import AdminDashboard from './components/AdminDashboard';
 import ProductDetailsPage from './components/ProductDetails';
 import Cart from './components/Cart';
+import Checkout from './components/Checkout';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -30,6 +31,7 @@ function App() {
           <Route index element={<ProductListing />} />
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           {/* checkout page */}
         </Route>
         <Route path="/signup" element={<Signup />} />

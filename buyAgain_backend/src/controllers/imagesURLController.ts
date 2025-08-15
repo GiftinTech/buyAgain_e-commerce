@@ -32,7 +32,7 @@ const uploadUserPhoto = upload.single('photo');
 const resizeUserPhoto = catchAsync(
   async (req: CustomRequest, res: Response, next: NextFunction) => {
     if (!req.file) {
-      console.log('No File FOund');
+      console.log('No File Found');
       return next();
     }
 

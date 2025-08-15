@@ -45,7 +45,11 @@ export const createSendToken = (
   const cookieOptions = {
     expires: new Date(Date.now() + jwtCookieExpiresIn * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV !== 'development',
+    sameSite:
+      process.env.NODE_ENV === 'development'
+        ? ('lax' as 'lax')
+        : ('none' as 'none'),
   };
 
   // 3. Send the refresh token in a cookie

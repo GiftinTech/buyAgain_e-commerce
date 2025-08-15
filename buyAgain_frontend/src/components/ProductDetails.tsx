@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'; // Added more icons
 
 import useCart from '../hooks/useShopping';
-import type { ICart } from '../context/ShoppingContext';
+import type { ICartItem } from '../context/ShoppingContext';
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
@@ -99,6 +99,7 @@ const ProductDetailsPage = () => {
       console.log('Error fetching product details:', err);
 
       setProductDetails(null);
+    } finally {
       setLoading(false);
     }
   }, [id, setLoading, setError, setProductDetails]);
@@ -137,7 +138,7 @@ const ProductDetailsPage = () => {
 
   // Check if product is already in cart to disable "Add to Cart" button
   const isProductInCart = cartItems.some(
-    (item: ICart) => item.id === productDetails._id,
+    (item: ICartItem) => item._id === productDetails._id,
   );
 
   // Calculate discounted price

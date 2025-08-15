@@ -39,7 +39,7 @@ const Login = () => {
         ) {
           navigate('/admin');
         } else {
-          navigate('/products'); // Navigate ordinary users to the home page
+          navigate('/'); // Navigate ordinary users to the home page
         }
       } else {
         // Display the error message from the API

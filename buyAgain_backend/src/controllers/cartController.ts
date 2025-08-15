@@ -1,136 +1,205 @@
-import { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
+import { Response, NextFunction } from 'express';
 
-import Cart, { ICart } from '../models/cartModel';
-import factory from './controllerFactory';
+import Cart from '../models/cartModel';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
+import mongoose from 'mongoose';
+import { IProduct } from '../models/productModel';
 
-export const getUserCart = catchAsync(
+const getUserCart = catchAsync(
   async (req: any, res: Response, next: NextFunction) => {
     const userId = req.user._id;
 
-    // Aggregation pipeline to calculate totals
-    const totalsPromise = Cart.aggregate([
-      { $match: { user: userId } },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'product',
-          foreignField: '_id',
-          as: 'productDetails',
-        },
+    // Fetch the cart with populated product details
+    const cart = await Cart.findOne({ user: userId })
+      .populate<{
+        items: Array<{ product: IProduct; quantity: number }>;
+      }>('items.product')
+      .select('items');
+
+    if (!cart) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'Cart not found.',
+      });
+    }
+
+    // Calculate totals
+    const totals = cart.items.reduce(
+      (acc, item) => {
+        const product = item.product;
+        const price = product.price;
+        const discount = product.discountPercentage;
+        const quantity = item.quantity;
+
+        const discountedPrice = price * (1 - discount / 100);
+
+        acc.total += price * quantity;
+        acc.discountedTotal += discountedPrice * quantity;
+        acc.totalProducts += 1;
+        acc.totalQuantity += quantity;
+
+        return acc;
       },
-      { $unwind: '$productDetails' },
       {
-        $group: {
-          _id: null,
-          total: {
-            $sum: { $multiply: ['$quantity', '$productDetails.price'] },
-          },
-          discountedTotal: {
-            $sum: {
-              $multiply: [
-                '$quantity',
-                {
-                  $multiply: [
-                    '$productDetails.price',
-                    {
-                      $subtract: [
-                        1,
-                        {
-                          $divide: ['$productDetails.discountPercentage', 100],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-          totalProducts: { $sum: 1 },
-          totalQuantity: { $sum: '$quantity' },
-        },
+        total: 0,
+        discountedTotal: 0,
+        totalProducts: 0,
+        totalQuantity: 0,
       },
-    ]);
-
-    // Find and populate the cart items
-    const cartItemsPromise = Cart.find({ user: userId }).select('-__v').populate({
-      path: 'product',
-      select: 'name price discountPercentage thumbnail',
-    });
-
-    // Execute both queries in parallel for efficiency
-    const [totals, cartItems] = await Promise.all([
-      totalsPromise,
-      cartItemsPromise,
-    ]);
-
-    const cartTotals = totals[0] || {
-      total: 0,
-      discountedTotal: 0,
-      totalProducts: 0,
-      totalQuantity: 0,
-    };
+    );
 
     res.status(200).json({
       status: 'success',
-      results: cartItems.length,
+      results: cart.items.length,
       data: {
-        cartItems,
-        cartTotals,
+        cartItems: cart.items,
+        cartTotals: totals,
       },
     });
   },
 );
 
-export const updateCartQuantity = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  // Check if req.body exists and is an object
-  if (!req.body || typeof req.body !== 'object') {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Request body must be a valid object.',
+const addToCart = catchAsync(
+  async (req: any, res: Response, next: NextFunction) => {
+    // 1. Get user and product details from the request body.
+    const userId = req.user._id;
+    const { product, quantity } = req.body;
+
+    // Validate incoming product ID
+    if (!product || !mongoose.Types.ObjectId.isValid(product)) {
+      return next(new AppError('Invalid product ID provided.', 400));
+    }
+
+    // 2. Find the user's cart.
+    let userCart = await Cart.findOne({ user: userId }).populate({
+      path: 'items.product',
+      select: '-__v',
     });
-  }
 
-  // Define a new object to hold only the allowed fields
-  const allowedUpdates: { quantity?: number } = {};
+    // 3. If no cart exists for the user, create a new one.
+    if (!userCart) {
+      userCart = await Cart.create({
+        user: userId,
+        items: [{ product: product, quantity }],
+      });
 
-  // Check if 'quantity' is present in the request body
-  if (req.body.quantity) {
-    // Check if the 'quantity' is a valid number
-    if (typeof req.body.quantity !== 'number' || req.body.quantity <= 0) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Quantity must be a positive number.',
+      return res.status(201).json({
+        status: 'success',
+        message: 'New cart created and item added successfully.',
+        data: { cart: userCart },
       });
     }
-    // If valid, assign it to the new object
-    allowedUpdates.quantity = req.body.quantity;
-  } else {
-    // If 'quantity' is not present, no updates can be made
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Only the "quantity" field can be updated.',
+
+    // 4. Check if the product is already in the cart.
+    const existingItem = userCart.items.find(
+      (item: any) => item.product._id.toString() === product,
+    );
+
+    if (existingItem) {
+      // 5. If the item exists, update its quantity.
+      existingItem.quantity += quantity;
+    } else {
+      // 6. If the item doesn't exist, add it as a new entry to the cart's items array.
+      userCart.items.push({
+        _id: new mongoose.Types.ObjectId(),
+        product: product,
+        quantity,
+      });
+    }
+
+    // 7. Save the updated cart document to the database.
+    await userCart.save();
+
+    // 8. Send a success response with the updated cart.
+    res.status(200).json({
+      status: 'success',
+      message: 'Item added to cart or quantity updated successfully.',
+      data: {
+        cart: userCart,
+      },
     });
-  }
+  },
+);
 
-  // Replace the original request body with the sanitized one
-  req.body = allowedUpdates;
+const updateCartQuantity = catchAsync(
+  async (req: any, res: Response, next: NextFunction) => {
+    // 1. Get user ID and the item ID from the request
+    // console.log('User:', req.user);
+    const userId = req.user._id;
+    const { itemId } = req.params;
+    const { quantity } = req.body;
 
-  // Proceed to next MW
-  next();
-};
+    // 2. Validate the incoming data
+    if (!quantity || quantity < 1) {
+      return next(new AppError('Quantity must be a positive number.', 400));
+    }
 
-const addToCart = factory.createOne<ICart>(Cart, 'cart');
+    const itemObjectId = new mongoose.Types.ObjectId(`${itemId}`);
 
-const updateCartItem = factory.updateOne<ICart>(Cart, 'cart');
+    // 3. Find the cart and atomically update the quantity of the specific item
+    const updatedCart = await Cart.findOneAndUpdate(
+      { user: userId, 'items._id': itemObjectId }, // Find the document
+      { $set: { 'items.$.quantity': quantity } }, // update the quantity of the matched item
+      { new: true, runValidators: true }, // Return the updated document and run schema validators
+    );
 
-const deleteCartItem = factory.deleteOne<ICart>(Cart, 'cart'); // Remove a specific cart item
+    // 4. Handle cases where the cart or item is not found
+    if (!updatedCart) {
+      return next(
+        new AppError(
+          'Item not found in cart or no cart exists for this user.',
+          404,
+        ),
+      );
+    }
+
+    // 5. Send a success response
+    res.status(200).json({
+      status: 'success',
+      message: 'Cart item quantity updated successfully.',
+      data: {
+        cart: updatedCart,
+      },
+    });
+  },
+);
+
+const deleteCartItem = catchAsync(
+  async (req: any, res: Response, next: NextFunction) => {
+    // i. Get user ID and item ID from the request.
+    const userId = req.user._id;
+    const { itemId } = req.params;
+
+    const itemObjectId = new mongoose.Types.ObjectId(`${itemId}`);
+
+    // ii. Find the user's cart and specific item within it, and remove the item.
+    const updatedCart = await Cart.findOneAndUpdate(
+      { user: userId, 'items._id': itemObjectId },
+      { $pull: { items: { _id: itemObjectId } } },
+      { new: true },
+    );
+
+    // iii. Check the result of the database op.
+    if (!updatedCart) {
+      return next(
+        new AppError(
+          'Item not found in cart or no cart exists for this user.',
+          404,
+        ),
+      );
+    }
+
+    // iv. Send a success response with the updated cart.
+    res.status(200).json({
+      status: 'success',
+      message: 'Item removed successfully.',
+      data: {
+        cart: updatedCart,
+      },
+    });
+  },
+); // Remove a specific cart item
 
 const clearUserCart = catchAsync(
   async (req: any, res: Response, next: NextFunction) => {
@@ -149,7 +218,6 @@ const clearUserCart = catchAsync(
 export default {
   addToCart,
   getUserCart,
-  updateCartItem,
   updateCartQuantity,
   deleteCartItem,
   clearUserCart,

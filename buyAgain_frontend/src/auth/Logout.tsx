@@ -8,7 +8,7 @@ const Logout = () => {
   const logout = async () => {
     const { success, error } = await handleLogout();
 
-    if (success) navigate('/products');
+    if (success) navigate('/');
     if (error) console.log('An unknown error occurred when logging out.');
   };
   return logout;

@@ -40,15 +40,13 @@ let corsOptions;
 if (process.env.NODE_ENV === 'development') {
   // In development, allow all origins
   corsOptions = {
-    origin: ['http://localhost:5173', 'http://127.0.0.1:3000'],
+    origin: 'http://localhost:5173',
   };
 } else {
   // In production, specify allowed origins
   corsOptions = {
     origin: [
       'https://buyagain-e-commerce.onrender.com', // prod
-      'http://localhost:5173', // local
-      'http://127.0.0.1:3000', // postman
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -69,7 +67,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Limit requests from same API
 const limiter = rateLimit({
-  max: process.env.NODE_ENV === 'production' ? 50 : 500, // remove in prod
+  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // remove in prod
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers

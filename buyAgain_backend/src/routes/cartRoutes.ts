@@ -3,7 +3,7 @@ import authController from '../controllers/authController';
 import cartController from '../controllers/cartController';
 import orderController from '../controllers/orderController';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router.use(
   authController.protectRoute,
@@ -14,12 +14,12 @@ router.use(
 router
   .route('/')
   .get(cartController.getUserCart)
-  .post(cartController.addToCart); // user add to cart
+  .post(cartController.addToCart) // user add to cart
+  .delete(cartController.clearUserCart); // delete cart
 
 router
   .route('/:itemId')
-  .patch(cartController.updateCartQuantity, cartController.updateCartItem) // user update quantity only
-  .delete(cartController.deleteCartItem) // remove one item
-  .delete(cartController.clearUserCart); // delete cart
+  .patch(cartController.updateCartQuantity) // user update quantity only
+  .delete(cartController.deleteCartItem); // remove one item
 
 export default router;

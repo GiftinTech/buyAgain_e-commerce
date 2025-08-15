@@ -28,6 +28,7 @@ interface NavLinks {
 
 const Header = () => {
   const { user } = useAuth();
+
   const logout = Logout();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
@@ -151,7 +152,8 @@ const Header = () => {
                   onClick={() => {
                     setSearchValue(item); // Set search input to clicked term
                     setSearchFocus(false); // Close dropdown
-                    // You might want to trigger a search here, e.g., navigate(`/search?q=${item}`);
+                    // trigger a search
+                    navigate(`/products?q=${item}`);
                   }}
                 >
                   <Search size={16} className="text-pink-500" />

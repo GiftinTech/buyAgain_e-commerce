@@ -9,6 +9,9 @@ const ProductListing: React.FC = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false); // Flag to prevent multiple fetches
+
+  console.log('cartItems:', cartItems);
 
   const navigate = useNavigate();
 
@@ -17,12 +20,13 @@ const ProductListing: React.FC = () => {
   };
 
   const fetchProduct = useCallback(async () => {
+    if (hasFetched) return; // Prevent refetch
+    setHasFetched(true);
+
     try {
       setLoading(true);
       setError('');
       const result = await handleFetchProduct();
-
-      console.log('Fetched Products:', result);
 
       if (result.success && result.products) {
         setProducts(result.products);
@@ -37,7 +41,7 @@ const ProductListing: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [handleFetchProduct]);
+  }, [handleFetchProduct, hasFetched]);
 
   // Function to render stars based on average rating
   const renderStars = (averageRating: number) => {
@@ -75,21 +79,23 @@ const ProductListing: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log('Component mounted or dependencies changed');
     fetchProduct();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchProduct]);
 
   // Conditional Rendering for Loading, Error, and No Products
   if (loading) {
     return (
-      <div className="py-8 text-center text-gray-700">Loading products...</div>
+      <div className="flex h-screen items-center justify-center py-8 text-black dark:text-gray-200">
+        Loading products. Please wait...
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="py-8 text-center font-semibold text-red-600">
-        Error: {error}
+      <div className="flex h-screen items-center justify-center py-8 font-semibold text-red-600">
+        {error}
       </div>
     );
   }
@@ -156,7 +162,9 @@ const ProductListing: React.FC = () => {
                 View Product
               </button>
               <button
-                disabled={cartItems.some((item) => item?.id === product?.id)}
+                disabled={cartItems?.some?.(
+                  (item) => item?._id === product?.id,
+                )}
                 className="flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 onClick={(e) => {
                   e.stopPropagation();

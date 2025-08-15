@@ -6,9 +6,16 @@ import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
 import { CustomRequest } from '../types';
 
-const createOne = <T extends Document>(Model: Model<T>, dataKey: string) =>
+const createOne = <T extends Document>(
+  Model: Model<T>,
+  dataKey: string,
+  select?: string,
+) =>
   catchAsync(async (req, res, next) => {
-    const newDoc = await Model.create(req.body);
+    const createdDoc = await Model.create(req.body);
+    const newDoc = select
+      ? await Model.findById(createdDoc._id).select(select)
+      : createdDoc;
 
     res.status(201).json({
       status: 'success',
