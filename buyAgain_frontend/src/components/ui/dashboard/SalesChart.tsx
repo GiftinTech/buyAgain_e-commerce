@@ -1,7 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Line } from 'react-chartjs-2';
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+);
+
 const SalesChart: React.FC = () => {
+  const [hasError, setHasError] = useState(false);
+  console.log('SalesChart:', hasError);
+
+  // simulate or handle dynamic data fetching here
+
   const data = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
@@ -40,11 +66,24 @@ const SalesChart: React.FC = () => {
     },
   };
 
-  return (
-    <section className="mt-10 rounded-lg bg-white p-6 shadow dark:bg-gray-900">
-      <Line data={data} options={options} />
-    </section>
-  );
+  // Error boundary for catching rendering issues
+  try {
+    return (
+      <section className="mt-10 rounded-lg bg-white p-6 shadow dark:bg-gray-900">
+        <Line data={data} options={options} />
+      </section>
+    );
+  } catch (error) {
+    console.error('Error rendering SalesChart:', error);
+    setHasError(true);
+    return (
+      <section className="mt-10 rounded-lg bg-white p-6 shadow dark:bg-gray-900">
+        <p className="text-red-500">
+          Failed to load chart. Please try again later.
+        </p>
+      </section>
+    );
+  }
 };
 
 export default SalesChart;

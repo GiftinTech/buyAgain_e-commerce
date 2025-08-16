@@ -243,7 +243,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error('Login error:', error);
       return {
         success: false,
-        error: error.message || 'An unexpected error occurred during login.',
+        error: 'Login failed. Please try again.',
       };
     }
   };
