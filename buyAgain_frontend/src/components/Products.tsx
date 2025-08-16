@@ -3,6 +3,7 @@ import { ShoppingCart, Star, Tag } from 'lucide-react';
 import type { IProduct } from '../context/ShoppingContext';
 import useCart from '../hooks/useShopping';
 import { useNavigate } from 'react-router-dom';
+import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
 
 const ProductListing: React.FC = () => {
   const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
@@ -86,16 +87,19 @@ const ProductListing: React.FC = () => {
   // Conditional Rendering for Loading, Error, and No Products
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center py-8 text-black dark:text-gray-200">
-        Loading products. Please wait...
+      <div className="lg:px-18 mx-auto my-10 grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-4 pt-10 lg:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] xl:px-20">
+        {/* Render 4 skeletons */}
+        {Array.from({ length: 4 }).map((_, index) => (
+          <ProductSkeleton key={index} />
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center py-8 font-semibold text-red-600">
-        {error}
+      <div className="flex h-[60vh] items-center justify-center py-8 font-semibold text-red-600">
+        Failed to fetch products. Please try again later...
       </div>
     );
   }
@@ -127,7 +131,7 @@ const ProductListing: React.FC = () => {
             className="absolute inset-0 z-0 h-full w-full rounded-lg object-cover"
           />
           {/* Overlay */}
-          <div className="absolute inset-0 z-10 rounded-lg bg-black/30 dark:bg-white/10"></div>{' '}
+          <div className="absolute inset-0 z-10 rounded-lg bg-black/10 dark:bg-white/10"></div>{' '}
           <div className="relative z-20 flex h-full flex-col p-4 text-white">
             {' '}
             <h2 className="mb-2 min-h-[3rem] text-center text-lg font-semibold">

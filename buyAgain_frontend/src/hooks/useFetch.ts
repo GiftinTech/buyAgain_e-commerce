@@ -27,9 +27,10 @@ function useFetch<T = any>(url: string, options?: RequestInit): FetchResult<T> {
 
       if (!res.ok) {
         throw new Error(result.message || `HTTP error! Status: ${res.status}`);
+      } else {
+        setData(result.data || result);
+        setError(null);
       }
-
-      setData(result.data || result);
     } catch (err: any) {
       console.error('Fetch error:', err);
       setError(err.message || 'An unknown error occurred');

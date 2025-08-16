@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
 import { ShoppingCartContext } from '../hooks/useShopping';
@@ -100,6 +100,7 @@ interface ShopProviderProps {
 const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   const { user } = useAuth();
   const token = getAuthToken();
+  const location = useLocation();
 
   const [loading, setLoading] = useState(true);
   const [cartError, setError] = useState<string>('');
@@ -211,9 +212,10 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   }, [token, navigate]);
 
   // Load cart items on component mount
+
   useEffect(() => {
-    fetchCartItems();
-  }, [fetchCartItems]);
+    if (location.pathname === '/cart') fetchCartItems();
+  }, [location.pathname, fetchCartItems]);
 
   // Updates the quantity of an existing item in the cart
   const updateCartItemQuantity = useCallback(
@@ -332,7 +334,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     [cartItems, updateCartItemQuantity, addProductToCart, navigate],
   );
 
-  // Removes product or decrements quantity in backend cart
   // Removes product or decrements quantity in backend cart
   const handleRemoveFromCart = useCallback(
     async (cartItem: ICartItem, isFullyRemoved: boolean) => {
@@ -477,7 +478,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   };
 
   useEffect(() => {
-    handleFetchProduct();
+    if (location.pathname === '/') handleFetchProduct();
   }, []);
 
   const contextValue: ShopContextType = {

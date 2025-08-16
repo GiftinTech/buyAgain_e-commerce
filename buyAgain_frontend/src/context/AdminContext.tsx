@@ -1,8 +1,10 @@
-import { useMemo, type ReactNode } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AdminContext } from '../hooks/useAdmin';
 import type { IProduct } from './ShoppingContext';
 import useFetch from '../hooks/useFetch';
 import getAuthToken from '../utils/getAuthToken';
+import { useLocation } from 'react-router-dom';
 
 export interface IUser {
   _id: string;
@@ -11,6 +13,7 @@ export interface IUser {
   role: 'user' | 'admin' | 'seller';
   test_role: string;
   active: boolean;
+  photo: string;
 }
 
 export interface User {
@@ -23,18 +26,38 @@ interface Product extends IProduct {
   stock: number;
 }
 
+export interface IReview {
+  id: string;
+  product: string;
+  user: IUser;
+  review: string;
+  rating: number;
+  createdAt: string;
+}
+
+export interface Review {
+  review: IReview[];
+}
+
 interface AdminContextType {
   // Read-only state from useFetch hooks
   loading: boolean;
   error: string | null;
+  reviewError: string | null;
   users: User | null;
   products: IProduct[] | null;
+  reviews: Review | null;
 
   // Functions to trigger CRUD operations
   handleFetchUsers: () => Promise<{
     success: boolean;
     message?: string;
     users?: User | null;
+  }>;
+  handleFetchReviews: (product: Product) => Promise<{
+    success: boolean;
+    message?: string;
+    reviews?: Review | null;
   }>;
   handleCreateUser: () => Promise<void>;
   handleUpdateUser: () => Promise<void>;
@@ -54,6 +77,7 @@ const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 // provide the state
 const AdminProvider = ({ children }: AdminProviderProps) => {
   const token = getAuthToken();
+  const location = useLocation();
 
   const authOptions = useMemo(() => {
     return {
@@ -79,6 +103,34 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     refetch: refetchUsers,
   } = useFetch<User | null>('/users', authOptions);
 
+  // fetch reviews from DB
+  const {
+    data: fetchedReviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+  } = useFetch<Review>('/reviews'); // Or the correct endpoint
+
+  console.log('ReviewsError:', reviewsError);
+  // Local state to hold users
+  const [users, setUsers] = useState<User | null>(null);
+
+  // Trigger refetch of users only when route is /admin
+  useEffect(() => {
+    const fetchData = async () => {
+      if (location.pathname === '/admin') {
+        await refetchUsers();
+      }
+    };
+    fetchData();
+  }, [location.pathname, refetchUsers]);
+
+  // Update local users state when fetchedUsers changes
+  useEffect(() => {
+    if (fetchedUsers) {
+      setUsers(fetchedUsers);
+    }
+  }, [fetchedUsers]);
+
   // This function now just triggers a refetch from the hook
   const handleFetchUsers = async (): Promise<{
     success: boolean;
@@ -94,6 +146,38 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
       message: 'Users fetched successfully.',
       users: fetchedUsers,
     };
+  };
+
+  const handleFetchReviews = async (
+    product: Product,
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    reviews?: Review | null;
+  }> => {
+    try {
+      const res = await fetch(
+        `${BUYAGAIN_API_BASE_URL}/products/${product.id}/reviews`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to fetch reviews.');
+      }
+
+      const reviewsData: Review = await res.json();
+
+      // Refetch the list to update the UI
+      return { success: true, reviews: reviewsData };
+    } catch (error: any) {
+      console.error('Fetch reviews error:', error);
+      return { success: false, message: error.message };
+    }
   };
 
   // Placeholder functions for CRUD operations
@@ -113,7 +197,10 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
         ...authOptions,
         body: JSON.stringify(product),
       });
-      if (!res.ok) throw new Error('Failed to create product.');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to create product.');
+      }
 
       await refetchProducts();
     } catch (error) {
@@ -154,11 +241,14 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
   };
 
   const contextValue: AdminContextType = {
-    loading: productsLoading || usersLoading,
+    loading: productsLoading || usersLoading || reviewsLoading,
     error: productsError || usersError,
-    users: fetchedUsers,
+    users,
     products: fetchedProducts,
+    reviews: fetchedReviews,
+    reviewError: reviewsError,
     handleFetchUsers,
+    handleFetchReviews,
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,

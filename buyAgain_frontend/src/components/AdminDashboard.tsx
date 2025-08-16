@@ -57,15 +57,6 @@ const AdminDashboard: React.FC = () => {
     fetchProduct();
   }, []);
 
-  // Users
-  // const [users, setUsers] = useState([
-  //   { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-  //   { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
-  //   { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'User' },
-  //   { id: 4, name: 'Alice', email: 'alice@example.com', role: 'User' },
-  //   { id: 5, name: 'Bob', email: 'bob@example.com', role: 'User' },
-  // ]);
-
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-black">
       {/* Sidebar */}

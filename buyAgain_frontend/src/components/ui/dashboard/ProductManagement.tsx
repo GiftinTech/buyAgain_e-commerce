@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, XCircle, Edit, Trash2 } from 'lucide-react';
 import type { IProduct } from '../../../context/ShoppingContext';
 import useAdmin from '../../../hooks/useAdmin';

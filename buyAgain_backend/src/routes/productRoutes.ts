@@ -2,10 +2,13 @@ import express from 'express';
 import authController from '../controllers/authController';
 import productController from '../controllers/productController';
 import productImageUploadController from '../controllers/productImageUploadController';
+import reviewRouter from './reviewRoutes';
 
 const router = express.Router();
 
 // Unprotected and Unrestricted Routes
+router.use('/:productId/reviews', reviewRouter);
+
 router.route('/').get(productController.getAllProducts);
 router.route('/:id').get(productController.getProduct);
 

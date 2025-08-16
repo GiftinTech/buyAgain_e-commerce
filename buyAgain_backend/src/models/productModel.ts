@@ -58,7 +58,7 @@ const productSchema = new Schema<IProduct>(
     },
     description: {
       type: String,
-      required: [true, 'Please give a product description.'],
+      // required: [true, 'Please give a product description.'],
       trim: true,
       maxlength: [
         400,

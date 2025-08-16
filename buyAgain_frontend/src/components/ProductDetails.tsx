@@ -15,6 +15,8 @@ import {
 
 import useCart from '../hooks/useShopping';
 import type { ICartItem } from '../context/ShoppingContext';
+import ReviewsSection from './ReviewsSection';
+import { ProductDetailsSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
@@ -110,8 +112,8 @@ const ProductDetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
-        <h3 className="text-xl">Fetching product details...</h3>
+      <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+        <ProductDetailsSkeleton />
       </div>
     );
   }
@@ -191,6 +193,10 @@ const ProductDetailsPage = () => {
               </p>
             )}
           </div>
+          {/* Reviews */}
+          <div className="mt-8 hidden w-full border-t border-gray-700 pt-6 md:block">
+            <ReviewsSection productId={productDetails.id as string} />
+          </div>
         </div>
 
         {/* Product Details (Right Section) */}
@@ -250,6 +256,11 @@ const ProductDetailsPage = () => {
             <p className="mb-8 leading-relaxed text-gray-300">
               {productDetails.description}
             </p>
+
+            {/* Reviews */}
+            <div className="mt-8 border-t border-gray-700 pt-6 md:hidden">
+              <ReviewsSection productId={productDetails.id as string} />
+            </div>
 
             {/* Actions: Add to Cart */}
             <button

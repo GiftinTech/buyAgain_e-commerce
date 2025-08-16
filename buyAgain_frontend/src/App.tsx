@@ -11,7 +11,6 @@ import AdminDashboard from './components/AdminDashboard';
 import ProductDetailsPage from './components/ProductDetails';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
-import AdminProvider from './context/AdminContext';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -39,14 +38,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route
-          path="/admin"
-          element={
-            <AdminProvider>
-              <AdminDashboard />
-            </AdminProvider>
-          }
-        />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

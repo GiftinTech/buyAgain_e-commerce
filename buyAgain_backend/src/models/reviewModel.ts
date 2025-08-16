@@ -68,11 +68,8 @@ reviewSchema.pre<Query<IReview[], IReview>>(
   /^find/,
   function (next: (err?: CallbackError) => void) {
     this.populate({
-      path: 'product',
-      select: 'name', // Selects only the 'name' field of the product
-    }).populate({
       path: 'user',
-      select: 'name', // Selects only the 'name' field of the user
+      select: 'name photo', // Selects only the 'name' field of the user
     });
 
     next();
