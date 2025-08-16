@@ -1,18 +1,26 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import useTheme from '../hooks/useTheme';
 import Logout from '../auth/Logout';
-import useAuth from '../hooks/useAuth';
+
 import Sidebar from './ui/dashboard/Sidebar';
 import Header from './ui/dashboard/Header';
 import DashboardStats from './ui/dashboard/Stats';
 import SalesChart from './ui/dashboard/SalesChart';
 import UserManagement from './ui/dashboard/UserManagement';
 import ProductManagement from './ui/dashboard/ProductManagement';
+import useCart from '../hooks/useShopping';
+
+import useAuth from '../hooks/useAuth';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+
+  const { setLoading, setError, setProductList, handleFetchProduct } =
+    useCart();
+
   const logout = Logout();
   const { theme, toggleTheme } = useTheme();
 
@@ -21,26 +29,42 @@ const AdminDashboard: React.FC = () => {
     'dashboard' | 'users' | 'products'
   >('dashboard');
 
-  // Assume user?.data.users contains user profile info
+  // get login user profile
   const userProfile = user?.data.users;
 
-  // Users state
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'User' },
-    { id: 4, name: 'Alice', email: 'alice@example.com', role: 'User' },
-    { id: 5, name: 'Bob', email: 'bob@example.com', role: 'User' },
-  ]);
+  const fetchProduct = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const result = await handleFetchProduct();
 
-  // Products state
-  const [products, setProducts] = useState([
-    { id: 101, name: 'Sneakers', price: '$120', stock: 20 },
-    { id: 102, name: 'Wristwatch', price: '$80', stock: 35 },
-    { id: 103, name: 'Perfume', price: '$45', stock: 12 },
-    { id: 104, name: 'Backpack', price: '$60', stock: 18 },
-    { id: 105, name: 'Sunglasses', price: '$75', stock: 10 },
-  ]);
+      if (result.success && result.products) {
+        setProductList(result.products);
+      } else {
+        setError(result.message || 'Failed to load products.');
+        setProductList([]); // Ensure products is empty on error
+      }
+    } catch (err: unknown) {
+      console.error('Error in fetchProductsData:', err);
+      setError('An unexpected error occurred while fetching products.');
+      setProductList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [handleFetchProduct, setError, setLoading, setProductList]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, []);
+
+  // Users
+  // const [users, setUsers] = useState([
+  //   { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
+  //   { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
+  //   { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'User' },
+  //   { id: 4, name: 'Alice', email: 'alice@example.com', role: 'User' },
+  //   { id: 5, name: 'Bob', email: 'bob@example.com', role: 'User' },
+  // ]);
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-black">
@@ -100,13 +124,9 @@ const AdminDashboard: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'users' && (
-            <UserManagement users={users} setUsers={setUsers} />
-          )}
+          {activeTab === 'users' && <UserManagement />}
 
-          {activeTab === 'products' && (
-            <ProductManagement products={products} setProducts={setProducts} />
-          )}
+          {activeTab === 'products' && <ProductManagement />}
         </main>
       </div>
     </div>

@@ -128,9 +128,12 @@ const Signup = () => {
 
         <p className="mt-4 text-center text-gray-600 dark:text-gray-400">
           Already have an account?{' '}
-          <a href="/login" className="text-pink-700 hover:underline">
+          <button
+            onClick={() => navigate('/login')}
+            className="text-pink-700 hover:underline"
+          >
             Log in
-          </a>
+          </button>
         </p>
       </div>
     </div>

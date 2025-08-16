@@ -120,7 +120,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   }> => {
     setLoading(true);
 
-    if (!token || token) {
+    if (!token) {
       navigate('/');
     }
 
@@ -213,7 +213,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   // Load cart items on component mount
   useEffect(() => {
     fetchCartItems();
-  }, [token, fetchCartItems]);
+  }, [fetchCartItems]);
 
   // Updates the quantity of an existing item in the cart
   const updateCartItemQuantity = useCallback(

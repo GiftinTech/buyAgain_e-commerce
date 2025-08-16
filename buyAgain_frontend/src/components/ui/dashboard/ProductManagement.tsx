@@ -1,39 +1,34 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, XCircle, Edit, Trash2 } from 'lucide-react';
+import type { IProduct } from '../../../context/ShoppingContext';
+import useAdmin from '../../../hooks/useAdmin';
+import useCart from '../../../hooks/useShopping';
 
-interface Product {
-  id: number;
-  name: string;
-  price: string;
-  stock: number;
-}
+const ProductManagement = () => {
+  const { productList } = useCart();
+  const { handleCreateProduct, handleUpdateProduct, handleDeleteProduct } =
+    useAdmin();
 
-interface ProductManagementProps {
-  products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
-}
-
-const ProductManagement: React.FC<ProductManagementProps> = ({
-  products,
-  setProducts,
-}) => {
   const [productSearch, setProductSearch] = useState('');
   const [productPage, setProductPage] = useState(1);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<IProduct | null>(null);
   const [newProductForm, setNewProductForm] = useState(false);
   const [newProductData, setNewProductData] = useState({
     name: '',
     price: '',
     stock: '',
   });
-  const PAGE_SIZE = 3;
+
+  const PAGE_SIZE = 5;
+
+  const products = productList;
 
   const filteredProducts = useMemo(
     () =>
       products.filter(
         (p) =>
           p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-          p.price.toLowerCase().includes(productSearch.toLowerCase()),
+          String(p.price).toLowerCase().includes(productSearch.toLowerCase()),
       ),
     [products, productSearch],
   );
@@ -43,7 +38,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
     return filteredProducts.slice(start, start + PAGE_SIZE);
   }, [filteredProducts, productPage]);
 
-  const startEditProduct = (product: Product) => {
+  const startEditProduct = (product: IProduct) => {
     setEditingProduct(product);
   };
 
@@ -51,17 +46,17 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
     setEditingProduct(null);
   };
 
-  const saveProduct = () => {
+  const saveProduct = async () => {
     if (!editingProduct) return;
-    setProducts((prev) =>
-      prev.map((p) => (p.id === editingProduct.id ? editingProduct : p)),
-    );
+
+    await handleUpdateProduct(editingProduct);
+
     setEditingProduct(null);
   };
 
-  const deleteProduct = (id: number) => {
+  const deleteProduct = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      await handleDeleteProduct(id);
     }
   };
 
@@ -74,21 +69,24 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
     setNewProductForm(false);
   };
 
-  const saveNewProduct = () => {
+  const saveNewProduct = async () => {
     if (
       newProductData.name.trim() === '' ||
+      newProductData.stock.trim() === '' ||
       newProductData.price.trim() === '' ||
-      newProductData.stock.trim() === ''
+      isNaN(Number(newProductData.price))
     )
       return alert('Please fill all fields');
-    const newProduct: Product = {
-      id: Date.now(),
+
+    const newProduct = {
       name: newProductData.name,
-      price: newProductData.price,
+      price: Number(newProductData.price),
       stock: Number(newProductData.stock),
-    };
-    setProducts((prev) => [...prev, newProduct]);
+    } as unknown as IProduct;
+
+    await handleCreateProduct(newProduct);
     setNewProductForm(false);
+    setNewProductData({ name: '', price: '', stock: '' });
   };
 
   return (
@@ -141,12 +139,12 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
               placeholder="Price (e.g. $50)"
               className="rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               value={newProductData.price}
-              onChange={(e) =>
+              onChange={(e) => {
                 setNewProductData((prev) => ({
                   ...prev,
                   price: e.target.value,
-                }))
-              }
+                }));
+              }}
               required
             />
             <input
@@ -216,11 +214,11 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-600">
-          {paginatedProducts.map((product) =>
+          {paginatedProducts.map((product, i) =>
             editingProduct?.id === product.id ? (
               <tr key={product.id}>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {product.id}
+                <td className="cursor-pointer px-4 py-2 text-sm dark:text-gray-200">
+                  {(productPage - 1) * PAGE_SIZE + i + 1}
                 </td>
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   <input
@@ -239,12 +237,13 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
                   <input
                     type="text"
                     value={editingProduct.price}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const newPrice = parseFloat(e.target.value);
                       setEditingProduct({
                         ...editingProduct,
-                        price: e.target.value,
-                      })
-                    }
+                        price: isNaN(newPrice) ? 0 : newPrice,
+                      });
+                    }}
                     className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                   />
                 </td>
@@ -280,7 +279,7 @@ const ProductManagement: React.FC<ProductManagementProps> = ({
             ) : (
               <tr key={product.id}>
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {product.id}
+                  {(productPage - 1) * PAGE_SIZE + i + 1}
                 </td>
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   {product.name}

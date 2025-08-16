@@ -11,7 +11,7 @@ const Cart: React.FC = () => {
     handleRemoveFromCart,
     handleIncreaseQuantity,
     handleDecreaseQuantity,
-  } = useCart(); // Add the new functions
+  } = useCart();
 
   const navigate = useNavigate();
 
@@ -101,6 +101,7 @@ const Cart: React.FC = () => {
           <button
             disabled={!(cartItems?.length > 0)}
             className="tex-white bg-black px-4 py-3 text-sm font-extrabold disabled:opacity-50"
+            onClick={() => navigate('/checkout')}
           >
             Checkout
           </button>
