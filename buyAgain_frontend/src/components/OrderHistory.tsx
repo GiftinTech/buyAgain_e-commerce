@@ -12,7 +12,6 @@ const OrderHistory: React.FC = () => {
     { id: '001', date: '2025-08-01', total: 120, status: 'Delivered' },
     { id: '002', date: '2025-07-25', total: 250, status: 'Shipped' },
   ];
-
   return (
     <div className="mx-auto max-w-4xl p-4">
       <h1 className="mb-6 text-2xl font-bold">Order History</h1>

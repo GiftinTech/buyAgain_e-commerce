@@ -11,6 +11,7 @@ import AdminDashboard from './components/AdminDashboard';
 import ProductDetailsPage from './components/ProductDetails';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
+import useCart from './hooks/useShopping';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -23,6 +24,7 @@ const ScrollToTop = () => {
 };
 
 function App() {
+  const { productDetails } = useCart();
   return (
     <>
       <ScrollToTop />
@@ -31,7 +33,10 @@ function App() {
           <Route index element={<ProductListing />} />
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/checkout"
+            element={<Checkout productId={productDetails?.id} />}
+          />
           {/* checkout page */}
         </Route>
         <Route path="/signup" element={<Signup />} />
