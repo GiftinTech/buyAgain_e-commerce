@@ -1,4 +1,4 @@
-import { model, Schema, Types, Document } from 'mongoose';
+import { model, Schema, Types, Document, CallbackError, Query } from 'mongoose';
 
 // Define the IOrderItems interface
 export interface IOrderItems {
@@ -85,6 +85,14 @@ orderSchema.virtual('totalPrice').get(function () {
   return this.orderItems.reduce((total, item) => {
     return total + item.priceAtTimeOfOrder * item.quantity;
   }, 0);
+});
+
+orderSchema.pre(/^find/, function (this: Query<any, any>, next: Function) {
+  this.populate('user').populate({
+    path: 'product',
+    select: 'name',
+  });
+  next();
 });
 
 const Order = model<IOrder>('Order', orderSchema);

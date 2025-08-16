@@ -22,6 +22,7 @@ const getCheckoutSession = catchAsync(
     }
 
     // 1) Get the currently ordered product
+    const productId = req.params.productId;
     const product = await Product.findById(req.params.productId);
 
     if (!product) {
@@ -40,7 +41,7 @@ const getCheckoutSession = catchAsync(
           quantity: 1,
           price_data: {
             currency: 'ngn',
-            unit_amount: product.price * 100,
+            unit_amount: Math.round(product.price * 100),
             product_data: {
               name: `${product.name} Product`,
               description: product.description,
@@ -62,89 +63,15 @@ const getCheckoutSession = catchAsync(
   },
 );
 
-// This helper function handles the post-checkout logic.
-// production version
-// const createOrderCheckout = async (session: Stripe.Checkout.Session) => {
-//   const product = session.client_reference_id;
-
-//   if (!product) {
-//     console.error('Product reference ID is missing from Stripe session.');
-//     return;
-//   }
-
-//   const user = await User.findOne({ email: session.customer_email });
-
-//   if (!user) {
-//     console.error(`User with email ${session.customer_email} not found.`);
-//     return;
-//   }
-
-//   const price = session.amount_total ? session.amount_total / 100 : 0;
-
-//   await Order.create({
-//     product: new Types.ObjectId(product),
-//     user: user._id,
-//     price,
-//   });
-// };
-
-// Development version, TESTING only
-// Update the function to accept a PaymentIntent object
-export const createOrderCheckout = async (
-  paymentIntent: Stripe.PaymentIntent,
-) => {
-  // Get the product, user, and price from the PaymentIntent object
-  // client_reference_id is stored in the metadata for a PaymentIntent
-  const product = paymentIntent.metadata.productId;
-
-  // The customer email is not directly on the PaymentIntent;
-  // you must retrieve the customer from the PaymentIntent's customer ID.
-  const customerId = paymentIntent.customer;
-  if (typeof customerId !== 'string') {
-    console.error('Customer ID not found on PaymentIntent.');
-    return;
-  }
-
-  // Retrieve the customer object to get the email
-  const customer = (await stripe.customers.retrieve(
-    customerId,
-  )) as Stripe.Customer;
-  const user = await User.findOne({ email: customer.email });
-
-  if (!user) {
-    console.error(`User with email ${customer.email} not found.`);
-    return;
-  }
-
-  // The amount on the PaymentIntent is in cents/kobo; divide by 100 for the actual price
-  const price = paymentIntent.amount / 100;
-
-  // Create the new order
-  await Order.create({
-    product: new Types.ObjectId(product),
-    user: user._id,
-    price,
-  });
-};
-
-// A helper function to process a successful payment intent
-const handlePaymentIntentSucceeded = (paymentIntent: Stripe.PaymentIntent) => {
-  // Implement your logic here, e.g., create an order, update a database
-  console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
-};
-
-// A helper function to process a successful payment method attachment
-const handlePaymentMethodAttached = (paymentMethod: Stripe.PaymentMethod) => {
-  // Implement your logic here
-  console.log(`PaymentMethod ${paymentMethod.id} was successfully attached.`);
-};
-
-export const webhookCheckout = (req: Request, res: Response): void => {
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
-  let event: Stripe.Event;
-
+export const webhookCheckout = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
   // Use the raw body for signature verification
   const sig = req.headers['stripe-signature'] as string;
+
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
@@ -164,26 +91,92 @@ export const webhookCheckout = (req: Request, res: Response): void => {
   console.log('Webhook received! Event type:', event.type);
 
   // Handle the event based on its type
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      createOrderCheckout(paymentIntent);
-      console.log(
-        `✅ PaymentIntent for ${paymentIntent.amount} was successful!`,
-      );
-      handlePaymentIntentSucceeded(paymentIntent);
-      break;
-    case 'payment_method.attached':
-      const paymentMethod = event.data.object as Stripe.PaymentMethod;
-      console.log(`✅ PaymentMethod for ${paymentMethod.id} was successful!`);
-      handlePaymentMethodAttached(paymentMethod);
-      break;
-    default:
-      console.log(`Unhandled event type ${event.type}.`);
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    await handlePaymentIntentSucceeded(paymentIntent);
+  } else if (event.type === 'checkout.session.completed') {
+    // For more reliable data, fetch session again
+    const sessionId = (event.data.object as any).id;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    await createOrderCheckout(session);
+  } else if (event.type === 'payment_method.attached') {
+    const paymentMethod = event.data.object as Stripe.PaymentMethod;
+    handlePaymentMethodAttached(paymentMethod);
+  } else {
+    console.log(`Unhandled event type ${event.type}`);
   }
 
   // Acknowledge receipt of the event
   res.status(200).json({ received: true });
+};
+
+//This helper function handles the post-checkout logic.
+//production version
+const createOrderCheckout = async (session: Stripe.Checkout.Session) => {
+  const productId = session.client_reference_id;
+
+  if (!productId) {
+    console.error('Product reference ID is missing from Stripe session.');
+    return;
+  }
+
+  const userEmail = await User.findOne({ email: session.customer_email });
+
+  if (!userEmail) {
+    console.error(`User with email ${session.customer_email} not found.`);
+    return;
+  }
+
+  const user = await User.findOne({ email: userEmail });
+  if (!user) {
+    console.error(`User with email ${userEmail} not found.`);
+    return;
+  }
+
+  // ensure product exists
+  const product = await Product.findById(productId);
+  if (!product) {
+    console.error(`Product with ID ${productId} not found.`);
+    return;
+  }
+
+  // Make sure amount_total exists and is accurate
+  const amountTotal = session.amount_total ?? 0;
+  const price = amountTotal / 100;
+
+  // Prevent duplicate orders: check if an order with same session ID exists
+  const existingOrder = await Order.findOne({ stripeSessionId: session.id });
+  if (existingOrder) {
+    console.log(`Order for session ${session.id} already exists.`);
+    return;
+  }
+
+  await Order.create({
+    product: new Types.ObjectId(productId),
+    user: user._id,
+    price,
+    stripeSessionId: session.id,
+  });
+
+  console.log(
+    `Order created for user ${user.email} and product ${product.name}`,
+  );
+};
+
+// handle payment intent success
+const handlePaymentIntentSucceeded = async (
+  paymentIntent: Stripe.PaymentIntent,
+) => {
+  console.log(
+    `PaymentIntent ${paymentIntent.id} succeeded for amount ${paymentIntent.amount}`,
+  );
+  // Additional logic if needed
+};
+
+// handle payment method attached
+const handlePaymentMethodAttached = (paymentMethod: Stripe.PaymentMethod) => {
+  console.log(`PaymentMethod ${paymentMethod.id} attached successfully`);
+  // Additional logic if needed
 };
 
 // MW to set the filter for user-specific data
