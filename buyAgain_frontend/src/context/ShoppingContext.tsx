@@ -10,7 +10,7 @@ import { ShoppingCartContext } from '../hooks/useShopping';
 import getAuthToken from '../utils/getAuthToken';
 
 // interface
-interface IProduct {
+export interface IProduct {
   _id: string; // Product ID from DB
   name: string;
   price: number;
