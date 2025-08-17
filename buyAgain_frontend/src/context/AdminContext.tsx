@@ -39,14 +39,45 @@ export interface Review {
   review: IReview[];
 }
 
+interface ShippingAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+interface OrderItem {
+  product: string;
+  quantity: number;
+  priceAtTimeOfOrder: number;
+}
+
+export interface IOrder {
+  _id: string;
+  user: string;
+  status: string;
+  paid: boolean;
+  createdAt: string;
+  totalPrice: number;
+  shippingAddress: ShippingAddress;
+  orderItems: OrderItem[];
+}
+
+interface Order {
+  orders: IOrder[];
+}
+
 interface AdminContextType {
   // Read-only state from useFetch hooks
   loading: boolean;
   error: string | null;
   reviewError: string | null;
+  orderError: string | null;
   users: User | null;
   products: IProduct[] | null;
   reviews: Review | null;
+  orders: Order | null;
 
   // Functions to trigger CRUD operations
   handleFetchUsers: () => Promise<{
@@ -58,6 +89,11 @@ interface AdminContextType {
     success: boolean;
     message?: string;
     reviews?: Review | null;
+  }>;
+  handleFetchOrders: () => Promise<{
+    success: boolean;
+    message?: string;
+    orders?: Order | null;
   }>;
   handleCreateUser: () => Promise<void>;
   handleUpdateUser: () => Promise<void>;
@@ -110,7 +146,16 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     error: reviewsError,
   } = useFetch<Review>('/reviews'); // Or the correct endpoint
 
-  console.log('ReviewsError:', reviewsError);
+  //console.log('ReviewsError:', reviewsError);
+
+  // fetch orders from DB
+  const {
+    data: fetchedOrders,
+    loading: ordersLoading,
+    error: ordersError,
+  } = useFetch<Order>('/orders', authOptions);
+  console.log('Orders Data:', fetchedOrders);
+
   // Local state to hold users
   const [users, setUsers] = useState<User | null>(null);
 
@@ -180,6 +225,21 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     }
   };
 
+  const handleFetchOrders = async (): Promise<{
+    success: boolean;
+    message?: string;
+    orders?: Order | null;
+  }> => {
+    if (ordersError) {
+      return { success: false, message: ordersError };
+    }
+    return {
+      success: true,
+      message: 'Orders fetched successfully.',
+      orders: fetchedOrders,
+    };
+  };
+
   // Placeholder functions for CRUD operations
   const handleCreateUser = async () => {
     /* Logic here */
@@ -241,14 +301,18 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
   };
 
   const contextValue: AdminContextType = {
-    loading: productsLoading || usersLoading || reviewsLoading,
+    loading: productsLoading || usersLoading || reviewsLoading || ordersLoading,
     error: productsError || usersError,
     users,
     products: fetchedProducts,
     reviews: fetchedReviews,
     reviewError: reviewsError,
+    orders: fetchedOrders,
+    orderError: ordersError,
+
     handleFetchUsers,
     handleFetchReviews,
+    handleFetchOrders,
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,

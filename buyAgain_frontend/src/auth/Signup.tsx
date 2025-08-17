@@ -27,7 +27,7 @@ const Signup = () => {
       setPassword('');
       setPasswordConfirm('');
 
-      navigate('/products');
+      navigate('/');
     } else {
       setError(
         result.error ||

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { Home, Users, Package, X } from 'lucide-react';
+import { Home, Users, Package, X, ShoppingCart } from 'lucide-react';
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  activeTab: 'dashboard' | 'users' | 'products';
+  activeTab: 'dashboard' | 'users' | 'products' | 'orders';
   setActiveTab: (tab: 'dashboard' | 'users' | 'products') => void;
   toggleTheme: () => void;
 }
@@ -34,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         { name: 'Dashboard', id: 'dashboard' },
         { name: 'Users', id: 'users' },
         { name: 'Products', id: 'products' },
+        { name: 'Orders', id: 'orders' },
       ].map(({ name, id }) => (
         <button
           key={id}
@@ -50,6 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {id === 'dashboard' && <Home className="h-5 w-5" />}
           {id === 'users' && <Users className="h-5 w-5" />}
           {id === 'products' && <Package className="h-5 w-5" />}
+          {id === 'orders' && <ShoppingCart className="h-5 w-5" />}
           <span className="font-medium">{name}</span>
         </button>
       ))}

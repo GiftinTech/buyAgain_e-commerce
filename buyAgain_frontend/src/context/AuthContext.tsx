@@ -7,7 +7,7 @@ import getAuthToken from '../utils/getAuthToken';
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 // Shape of the buyAgain User object
-interface BuyAgainUser {
+export interface BuyAgainUser {
   _id: string;
   name: string;
   email: string;
@@ -20,7 +20,7 @@ interface DataKey {
   users?: BuyAgainUser;
 }
 
-interface Data {
+export interface Data {
   data: DataKey;
 }
 

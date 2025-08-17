@@ -101,7 +101,7 @@ const Header = () => {
   );
 
   return (
-    <header className="relative z-50 bg-white dark:bg-black">
+    <header className="relative z-40 bg-white dark:bg-black">
       {' '}
       {/* Added z-50 here */}
       {/* Top Row */}

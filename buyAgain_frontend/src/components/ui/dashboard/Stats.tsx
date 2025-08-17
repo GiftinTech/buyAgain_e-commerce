@@ -4,7 +4,7 @@ import useAdmin from '../../../hooks/useAdmin';
 import useCart from '../../../hooks/useShopping';
 
 const DashboardStats: React.FC = () => {
-  const { users } = useAdmin();
+  const { users, orders } = useAdmin();
   const { productList } = useCart();
   const usersArr = users?.users || [];
 
@@ -16,7 +16,7 @@ const DashboardStats: React.FC = () => {
         <div>
           <p className="text-gray-500 dark:text-gray-300">Orders</p>
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            1,234
+            {orders?.orders.length}
           </h2>
         </div>
       </div>
@@ -46,7 +46,7 @@ const DashboardStats: React.FC = () => {
         <div>
           <p className="text-gray-500 dark:text-gray-300">Revenue</p>
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            $54,321
+            ₦54,321
           </h2>
         </div>
       </div>

@@ -293,14 +293,14 @@ const ProductManagement = () => {
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   <button
                     onClick={() => startEditProduct(product)}
-                    className="mr-5 rounded"
+                    className="mr-4 text-pink-600 hover:text-pink-900 dark:text-pink-400 dark:hover:text-pink-300"
                     aria-label={`Edit product ${product.name}`}
                   >
                     <Edit className="inline h-4 w-4" />
                   </button>
                   <button
                     onClick={() => deleteProduct(product.id)}
-                    className="rounded"
+                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                     aria-label={`Delete product ${product.name}`}
                   >
                     <Trash2 className="inline h-4 w-4" />

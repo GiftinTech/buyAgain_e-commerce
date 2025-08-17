@@ -261,7 +261,7 @@ const createOrder = catchAsync(
       user: req.user._id,
       shippingAddress,
       orderItems,
-      paid: false,
+      paid: true,
       status: 'pending',
     });
 

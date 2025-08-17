@@ -11,6 +11,9 @@ import AdminDashboard from './components/AdminDashboard';
 import ProductDetailsPage from './components/ProductDetails';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
+import useAuth from './hooks/useAuth';
+import ProtectedRoute from './components/ProtectedRoute';
+import Unauthorized from './pages/Unauthorized';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -23,6 +26,8 @@ const ScrollToTop = () => {
 };
 
 function App() {
+  const { user } = useAuth();
+
   return (
     <>
       <ScrollToTop />
@@ -32,13 +37,17 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           {/* checkout page */}
         </Route>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route element={<ProtectedRoute user={user} requiredRole="admin" />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

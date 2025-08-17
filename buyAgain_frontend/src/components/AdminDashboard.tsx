@@ -14,6 +14,7 @@ import ProductManagement from './ui/dashboard/ProductManagement';
 import useCart from '../hooks/useShopping';
 
 import useAuth from '../hooks/useAuth';
+import OrderHistory from './ui/dashboard/OrderHistory';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ const AdminDashboard: React.FC = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'users' | 'products'
+    'dashboard' | 'users' | 'products' | 'orders'
   >('dashboard');
 
   // get login user profile
@@ -92,7 +93,7 @@ const AdminDashboard: React.FC = () => {
         <main className="flex-grow p-6">
           {/* Tabs navigation */}
           <div className="mb-6 flex gap-4 border-b border-gray-300 dark:border-gray-700">
-            {['dashboard', 'users', 'products'].map((tab) => (
+            {['dashboard', 'users', 'products', 'orders'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -118,6 +119,7 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'users' && <UserManagement />}
 
           {activeTab === 'products' && <ProductManagement />}
+          {activeTab === 'orders' && <OrderHistory />}
         </main>
       </div>
     </div>
