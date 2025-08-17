@@ -16,14 +16,14 @@ const getProductId = catchAsync(async (req: CustomRequest, res, next) => {
 
 // Update product with image handling
 const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
-  console.log('after line 18');
+  // console.log('after line 18');
   const product = req.product;
   if (!product) {
     return next(new AppError('Product not found on request.', 404));
   }
 
-  console.log('BODY:', req.body);
-  console.log('FILE:', req.files);
+  // console.log('BODY:', req.body);
+  // console.log('FILE:', req.files);
 
   // Remove protected fields
   const { _id, id, createdAt, updatedAt, __v, ...updateBody } = req.body;

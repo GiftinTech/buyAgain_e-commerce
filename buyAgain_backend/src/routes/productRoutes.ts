@@ -29,15 +29,7 @@ router
     productController.updateProduct,
   )
   .patch(
-    (req, res, next) => {
-      console.log('Inside get product Id');
-      next();
-    },
     productController.getProductId,
-    (req, res, next) => {
-      console.log('Inside uploadProductPhotos');
-      next();
-    },
     productImageUploadController.uploadProductPhotos,
     productImageUploadController.processProductPhotos,
     productController.updateProduct,

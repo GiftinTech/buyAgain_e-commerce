@@ -65,7 +65,7 @@ const processProductPhotos = catchAsync(
 
     // Preserve existing images
     const newImagesArray = req.product.images ? [...req.product.images] : [];
-    console.log('newImagesArray:', newImagesArray);
+    // console.log('newImagesArray:', newImagesArray);
     // Handle images
     if (files.images && files.images.length > 0) {
       const processedImages = await Promise.all(
@@ -99,7 +99,7 @@ const processProductPhotos = catchAsync(
     }
 
     req.body.images = newImagesArray;
-    console.log('request body images:', req.body.images);
+    // console.log('request body images:', req.body.images);
 
     // Handle thumbnail
     if (files.thumbnail && files.thumbnail[0]) {
@@ -124,7 +124,7 @@ const processProductPhotos = catchAsync(
         );
         stream.end(buffer);
       });
-      console.log('Thumbnail:', req.body.thumbnail);
+      // console.log('Thumbnail:', req.body.thumbnail);
     }
 
     next();
