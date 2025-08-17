@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ShoppingCart, Star, Tag } from 'lucide-react';
 import type { IProduct } from '../context/ShoppingContext';
 import useCart from '../hooks/useShopping';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
+import { showAlert } from '../utils/alert';
 
 const ProductListing: React.FC = () => {
   const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
@@ -14,6 +15,7 @@ const ProductListing: React.FC = () => {
 
   console.log('cartItems:', cartItems);
 
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleNavigateToProductDetails = (getCurrentProductId: string) => {
@@ -80,9 +82,23 @@ const ProductListing: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('Component mounted or dependencies changed');
     fetchProduct();
   }, [fetchProduct]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('alert') === 'order') {
+      showAlert(
+        'success',
+        'Your order was successful! Please check your email for a confirmation. If your order doesn’t show up here immediately, please come back later.',
+      );
+
+      // Remove query param after alert
+      params.delete('alert');
+      const newUrl = `${location.pathname}?${params.toString()}`;
+      navigate(newUrl, { replace: true });
+    }
+  }, [location, navigate]);
 
   // Conditional Rendering for Loading, Error, and No Products
   if (loading) {
@@ -139,7 +155,7 @@ const ProductListing: React.FC = () => {
             </h2>
             <div className="mt-auto flex w-full items-center justify-between">
               <p className="mt-auto flex items-center gap-1 text-xl font-bold text-teal-900">
-                <Tag size={18} />${product.price.toFixed(2)}
+                <Tag size={18} />₦{product.price.toFixed(2)}
               </p>
               {/* Ratings Display */}
               {/* Only show ratings if product.rating is a number */}

@@ -72,7 +72,7 @@ const Cart: React.FC = () => {
           {/* ... The rest of your component remains the same */}
           <div className="mt-6 flex items-center justify-between text-lg font-bold">
             <span className="font-bold">Total:</span>
-            <span> ${cartTotals?.total.toFixed(2)}</span>
+            <span> ₦{cartTotals?.total.toFixed(2)}</span>
           </div>
         </div>
       )}

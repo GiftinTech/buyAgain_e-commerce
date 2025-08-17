@@ -60,10 +60,7 @@ const getCheckoutSession = catchAsync(
           unit_amount: Math.round(product.price * 100),
           product_data: {
             name: product.name,
-            description: product.description,
-            images: [
-              `${req.protocol}://${req.get('host')}/img/product/${product.thumbnail}`,
-            ],
+            image: product.thumbnail,
           },
         },
       };
@@ -85,10 +82,11 @@ const getCheckoutSession = catchAsync(
     // Create Stripe session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-       success_url: `${req.protocol}://${req.get('host')}/orders/?product=${
-      req.params.productId
-    }&user=${req.user.id}&price=${product.price}`, // remove in prod
-     // success_url: `${req.protocol}://${req.get('host')}/orders?alert=order`,
+      //    success_url: `${req.protocol}://${req.get('host')}/orders/?product=${
+      //   req.params.productId
+      // }&user=${req.user.id}&price=${product.price}`, // remove in prod
+      success_url: `${req.protocol}://${req.get('host')}/?alert=order`,
+
       cancel_url: `${req.protocol}://${req.get('host')}/orders/${productSlug}`,
       customer_email: req.user.email,
       client_reference_id: orderId,
@@ -284,6 +282,31 @@ const updateOrder = factory.updateOne<IOrder>(Order, 'order');
 
 const deleteOrder = factory.deleteOne<IOrder>(Order, 'order');
 
+// after successful payment
+// const alerts = (req: Request, res: Response, next: NextFunction) => {
+//   const { alert } = req.query;
+//   if (alert === 'booking')
+//     res.alert =
+//       "Your booking was successful! Please check your email for a confirmation. If your booking doesn't show up here immediatly, please come back later.";
+//   next();
+// };
+
+// const getMyOrders = catchAsync(async (req: CustomRequest, res: Response, next: NextFunction) => {
+//   // Find all orders
+//   const order = await Order.find({ user: req.user.id })
+//   // Find product with the returned IDs
+//   const { orderItems } = order;
+
+//   const productIDs = orderItems.map((item) => item.product);
+//   const products = await Product.find({ _id: { $in: productIDs } });
+
+//   res.status(200).json({
+//     status: 'success',
+//     title: 'My Products',
+//     products,
+//   });
+//});
+
 export default {
   setUserFilter,
   createOrder,
@@ -293,4 +316,6 @@ export default {
   deleteOrder,
   getCheckoutSession,
   webhookCheckout,
+  // alerts,
+  // getMyOrders,
 };
