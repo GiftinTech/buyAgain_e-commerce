@@ -1,58 +1,62 @@
 import Product, { IProduct } from '../models/productModel';
 import factory from './controllerFactory';
-
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import { CustomRequest } from '../types';
 
-// product handlers
+// Middleware to get product ID and attach to request
 const getProductId = catchAsync(async (req: CustomRequest, res, next) => {
-  // Fetch the product document from the database
   const product = await Product.findById(req.params.id);
-
-  // Handle case where product is not found
   if (!product) {
     return next(new AppError('No product found with that ID', 404));
   }
-
-  res.locals.product = product;
   req.product = product;
   next();
 });
 
+// Update product with image handling
 const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
-  // Get the existing product from the request (set by getProduct middleware)
+  console.log('after line 18');
   const product = req.product;
   if (!product) {
     return next(new AppError('Product not found on request.', 404));
   }
 
-  // Build updated data object
-  const updatedData = {
-    ...product, // start with existing product data
-    ...req.body,
-    images: [
-      ...(Array.isArray(product.images) ? product.images : []),
-      ...((req.body.images as string[]) || []),
-    ],
-  };
+  console.log('BODY:', req.body);
+  console.log('FILE:', req.files);
 
-  // Update the product in the database
+  // Remove protected fields
+  const { _id, id, createdAt, updatedAt, __v, ...updateBody } = req.body;
+
+  // Handle images - merge existing with new if needed
+  if (req.body.images) {
+    // If client sends keepImages array, use those + new images
+    if (req.body.keepImages && Array.isArray(req.body.keepImages)) {
+      updateBody.images = [...req.body.keepImages, ...(req.body.images || [])];
+    } else if (Array.isArray(product.images)) {
+      // If no keepImages specified but we have existing images, keep them all
+      updateBody.images = [...product.images, ...(req.body.images || [])];
+    }
+  }
+
+  // Handle thumbnail - use new one if provided, otherwise keep existing
+  if (!req.body.thumbnail && product.thumbnail) {
+    updateBody.thumbnail = product.thumbnail;
+  }
+
   const updatedProduct = await Product.findByIdAndUpdate(
     req.params.id,
-    updatedData,
+    updateBody,
     {
-      new: true, // return the updated document
-      runValidators: true, // enforce schema validation
+      new: true,
+      runValidators: true,
     },
   );
 
-  // Handle case where product ID is invalid or not found
   if (!updatedProduct) {
     return next(new AppError('No product found with that ID.', 404));
   }
 
-  // Send updated product back to client
   res.status(200).json({
     status: 'success',
     data: {
@@ -61,12 +65,10 @@ const updateProduct = catchAsync(async (req: CustomRequest, res, next) => {
   });
 });
 
+// Factory functions
 const getAllProducts = factory.getAll<IProduct>(Product, 'products');
-
 const getProduct = factory.getOne<IProduct>(Product, 'products');
-
 const addProduct = factory.createOne<IProduct>(Product, 'product');
-
 const deleteProduct = factory.deleteOne<IProduct>(Product, 'product');
 
 export default {
