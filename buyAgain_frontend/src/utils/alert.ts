@@ -11,7 +11,29 @@ export const showAlert = (
   time: number = 7,
 ): void => {
   hideAlert();
-  const markup = `<div class="alert alert--${type}">${msg}</div>`;
+
+  // Determine styles based on alert type
+  const baseClasses = 'fixed top-4 inset-x-0 flex justify-center z-50';
+  const alertClasses = `px-4 py-3 rounded-lg shadow-lg transition-transform duration-200 cursor-default max-w-sm w-full mx-auto`;
+  const typeClasses =
+    type === 'success'
+      ? 'bg-pink-200 border-2 border-green-500 text-green-700'
+      : 'bg-pink-200 border-2 border-red-500 text-red-700';
+
+  const combinedClasses = `${baseClasses} ${alertClasses} ${typeClasses}`;
+
+  const markup = `<div class="${combinedClasses}">${msg}</div>`;
   document.body.insertAdjacentHTML('afterbegin', markup);
+
+  const alertDiv = document.querySelector(
+    '.fixed.top-4.inset-x-0.flex.justify-center.z-50 div',
+  );
+  if (alertDiv) {
+    (alertDiv as HTMLElement).classList.add(
+      'hover:scale-105',
+      'hover:shadow-2xl',
+    );
+  }
+
   window.setTimeout(hideAlert, time * 1000);
 };
