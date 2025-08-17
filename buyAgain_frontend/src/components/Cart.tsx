@@ -36,7 +36,7 @@ const Cart: React.FC = () => {
                 <div>
                   <p className="font-semibold">{item?.product?.name}</p>
                   <p className="text-sm text-gray-500">
-                    ${item?.product?.price.toFixed(2)}
+                    ₦ {item?.product?.price.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -82,7 +82,7 @@ const Cart: React.FC = () => {
         </h3>
         <ul className="mt-4 space-y-2 text-gray-700">
           <p className="flex flex-wrap gap-4 text-sm font-bold">
-            Total: <span>${cartTotals?.total.toFixed(2)}</span>
+            Total: <span>₦{cartTotals?.total.toFixed(2)}</span>
           </p>
           <p className="flex flex-wrap gap-4 text-sm font-bold">
             Total Products:
@@ -94,7 +94,7 @@ const Cart: React.FC = () => {
           </p>
           <p className="flex flex-wrap gap-4 text-sm font-bold">
             Total Discount:
-            <span> ${cartTotals?.discountedTotal.toFixed(2)}</span>
+            <span> ₦{cartTotals?.discountedTotal.toFixed(2)}</span>
           </p>
         </ul>
         <div className="mt-5 flex gap-2">

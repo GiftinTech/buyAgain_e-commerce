@@ -26,7 +26,7 @@ const orderItemsSchema = new Schema<IOrderItems>({
 });
 
 // Define the shipping address type
-interface IShippingAddress {
+export interface IShippingAddress {
   street: string;
   city: string;
   state: string;
@@ -87,13 +87,13 @@ orderSchema.virtual('totalPrice').get(function () {
   }, 0);
 });
 
-orderSchema.pre(/^find/, function (this: Query<any, any>, next: Function) {
-  this.populate('user').populate({
-    path: 'product',
-    select: 'name',
-  });
-  next();
-});
+// orderSchema.pre(/^find/, function (this: Query<any, any>, next: Function) {
+//   this.populate('user').populate({
+//     path: 'product',
+//     select: 'name',
+//   });
+//   next();
+// });
 
 const Order = model<IOrder>('Order', orderSchema);
 

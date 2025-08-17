@@ -1,46 +1,86 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+import useCart from '../hooks/useShopping';
+import getAuthToken from '../utils/getAuthToken';
+import useAuth from '../hooks/useAuth';
 
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 const Publishable_Key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 const stripePromise = loadStripe(Publishable_Key);
 
-const Checkout: React.FC<{ productId: string | undefined }> = ({
-  productId,
-}) => {
-  const [fullName, setFullName] = useState('');
-  const [address, setAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Credit Card');
+interface IShippingAddress {
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+const Checkout = () => {
+  const { cartItems } = useCart();
+  const token = getAuthToken();
+  const { user } = useAuth();
+
+  const [name, setName] = useState('');
+  const [shippingAddress, setShippingAddress] = useState<IShippingAddress>({
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
+  });
   const [loading, setLoading] = useState(false);
+
+  const authOptions = useMemo(() => {
+    return {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  }, [token]);
+
+  const createOrder = async () => {
+    const response = await fetch(`${BUYAGAIN_API_BASE_URL}/orders`, {
+      method: 'POST',
+      ...authOptions,
+      body: JSON.stringify({
+        user: user?.data?.users?._id || user?.data?.users?.email,
+        shippingAddress,
+        orderItems: cartItems,
+        paid: false,
+        status: 'pending',
+      }),
+    });
+    const orderData = await response.json();
+    return orderData; // contains order ID
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const order = await createOrder();
+      const orderId = order.id; // id from DB
+
       const stripe = await stripePromise;
       if (!stripe) throw new Error('Stripe.js failed to load.');
 
-      const res = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/api/create-checkout-session/${productId}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fullName,
-            address,
-            paymentMethod,
-          }),
-        },
-      );
+      // send POST req to create session with orderId
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/orders/checkout`, {
+        method: 'POST',
+        ...authOptions,
+        body: JSON.stringify({ orderId }),
+      });
 
       const data = await res.json();
 
       if (data.sessionId) {
         await stripe.redirectToCheckout({ sessionId: data.sessionId });
       } else {
-        alert('Failed to create checkout session');
+        alert('Failed to get checkout session');
       }
     } catch (err: any) {
       console.error(err);
@@ -51,43 +91,99 @@ const Checkout: React.FC<{ productId: string | undefined }> = ({
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-4">
+    <div className="mx-auto mt-6 max-w-2xl px-8 py-4">
       <h1 className="mb-6 text-2xl font-bold">Checkout</h1>
       <form onSubmit={handleSubmit} className="space-y-4" name="checkout">
+        {/* Full Name */}
         <div>
           <label className="mb-1 block font-semibold">Full Name</label>
           <input
-            name="fullName"
+            name="name"
             type="text"
             className="w-full rounded border p-2 dark:text-black"
-            placeholder="Jane Doe"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Enter your full name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Shipping Address Fields */}
+        <div>
+          <label className="mb-1 block font-semibold">Street</label>
+          <input
+            name="street"
+            type="text"
+            className="w-full rounded border p-2 dark:text-black"
+            placeholder="123 Main St"
+            value={shippingAddress.street}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, street: e.target.value })
+            }
             required
           />
         </div>
         <div>
-          <label className="mb-1 block font-semibold">Shipping Address</label>
-          <textarea
+          <label className="mb-1 block font-semibold">City</label>
+          <input
+            name="city"
+            type="text"
             className="w-full rounded border p-2 dark:text-black"
-            placeholder="123 Main St"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Lagos"
+            value={shippingAddress.city}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, city: e.target.value })
+            }
             required
-          ></textarea>
+          />
         </div>
         <div>
-          <label className="mb-1 block font-semibold">Payment Method</label>
-          <select
+          <label className="mb-1 block font-semibold">State</label>
+          <input
+            name="state"
+            type="text"
             className="w-full rounded border p-2 dark:text-black"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option>Credit Card</option>
-            <option>PayPal</option>
-            <option>Bank Transfer</option>
-          </select>
+            placeholder="Lagos State"
+            value={shippingAddress.state}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, state: e.target.value })
+            }
+            required
+          />
         </div>
+        <div>
+          <label className="mb-1 block font-semibold">ZIP Code</label>
+          <input
+            name="zip"
+            type="text"
+            className="w-full rounded border p-2 dark:text-black"
+            placeholder="100001"
+            value={shippingAddress.zip}
+            onChange={(e) =>
+              setShippingAddress({ ...shippingAddress, zip: e.target.value })
+            }
+            required
+          />
+        </div>
+        <div>
+          <label className="mb-1 block font-semibold">Country</label>
+          <input
+            name="country"
+            type="text"
+            className="w-full rounded border p-2 dark:text-black"
+            placeholder="Nigeria"
+            value={shippingAddress.country}
+            onChange={(e) =>
+              setShippingAddress({
+                ...shippingAddress,
+                country: e.target.value,
+              })
+            }
+            required
+          />
+        </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}

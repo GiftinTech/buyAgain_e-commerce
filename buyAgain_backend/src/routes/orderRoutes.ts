@@ -7,6 +7,8 @@ const router = express.Router();
 // Protected Routes
 router.use(authController.protectRoute);
 
+router.post('/checkout', orderController.getCheckoutSession);
+
 router
   .route('/')
   .get(orderController.setUserFilter, orderController.getAllOrders)

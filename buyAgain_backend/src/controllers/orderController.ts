@@ -2,12 +2,16 @@ import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 import Stripe from 'stripe';
 
-import Order, { IOrder } from '../models/orderModel';
+import Order, {
+  IOrder,
+  IOrderItems,
+  IShippingAddress,
+} from '../models/orderModel';
 import factory from './controllerFactory';
 import { CustomRequest } from '../types';
-import User from '../models/userModel';
+import User, { IUser } from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
-import Product from '../models/productModel';
+import Product, { IProduct } from '../models/productModel';
 import AppError from '../utils/appError';
 
 // Stripe payment config
@@ -21,52 +25,96 @@ const getCheckoutSession = catchAsync(
       return next(new AppError('User not authenticated.', 400));
     }
 
-    // 1) Get the currently ordered product
-    const productId = req.params.productId;
-    const product = await Product.findById(req.params.productId);
+    const { orderId } = req.body;
 
-    if (!product) {
-      return next(new AppError('Product not found.', 404));
+    // Validate orderId
+    if (!orderId) {
+      return next(new AppError('Order ID is required.', 400));
     }
 
-    // 2) Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      success_url: `${req.protocol}://${req.get('host')}/orders?alert=order`,
-      cancel_url: `${req.protocol}://${req.get('host')}/orders/${product.slug}`,
-      customer_email: req.user.email,
-      client_reference_id: req.params.productId,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: 'ngn',
-            unit_amount: Math.round(product.price * 100),
-            product_data: {
-              name: `${product.name} Product`,
-              description: product.description,
-              images: [
-                `${req.protocol}://${req.get('host')}/img/product/${product.thumbnail}`,
-              ],
-            },
+    // Fetch order from database
+    const order = await Order.findById(orderId)
+      .populate<{ user: IUser }>('user')
+      .exec();
+
+    if (!order) {
+      return next(new AppError('Order not found.', 404));
+    }
+
+    const { shippingAddress, orderItems } = order;
+    const name = order.user.name;
+
+    const lineItems: any[] = [];
+
+    // Fetch all products in parallel
+    const lineItemsPromises = orderItems.map(async (item) => {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        console.error(`Product with ID ${item.product} not found.`);
+        return null;
+      }
+      return {
+        quantity: item.quantity,
+        price_data: {
+          currency: 'ngn',
+          unit_amount: Math.round(product.price * 100),
+          product_data: {
+            name: product.name,
+            description: product.description,
+            images: [
+              `${req.protocol}://${req.get('host')}/img/product/${product.thumbnail}`,
+            ],
           },
         },
-      ],
-      mode: 'payment',
+      };
     });
 
-    // 3) Create session as response
+    const lineItemsResults = await Promise.all(lineItemsPromises);
+    // Filter out failed product lookups
+    lineItems.push(...lineItemsResults.filter(Boolean));
+
+    // Save the product slug for cancel_url (assuming all products are from the same order)
+    let productSlug = '';
+    if (orderItems.length > 0) {
+      const firstProduct = await Product.findById(orderItems[0].product);
+      if (firstProduct) {
+        productSlug = firstProduct.slug;
+      }
+    }
+
+    // Create Stripe session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+       success_url: `${req.protocol}://${req.get('host')}/orders/?product=${
+      req.params.productId
+    }&user=${req.user.id}&price=${product.price}`, // remove in prod
+     // success_url: `${req.protocol}://${req.get('host')}/orders?alert=order`,
+      cancel_url: `${req.protocol}://${req.get('host')}/orders/${productSlug}`,
+      customer_email: req.user.email,
+      client_reference_id: orderId,
+      line_items: lineItems,
+      mode: 'payment',
+      metadata: {
+        name,
+        address: JSON.stringify(shippingAddress),
+        orderItems: JSON.stringify(
+          orderItems.map((item) => ({
+            productId: item.product,
+            quantity: item.quantity,
+          })),
+        ),
+      },
+    });
+
     res.status(200).json({
       status: 'success',
+      url: session.url,
       session,
     });
   },
 );
 
-export const webhookCheckout = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+const webhookCheckout = async (req: Request, res: Response): Promise<void> => {
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
   // Use the raw body for signature verification
   const sig = req.headers['stripe-signature'] as string;
@@ -91,19 +139,11 @@ export const webhookCheckout = async (
   console.log('Webhook received! Event type:', event.type);
 
   // Handle the event based on its type
-  if (event.type === 'payment_intent.succeeded') {
-    const paymentIntent = event.data.object as Stripe.PaymentIntent;
-    await handlePaymentIntentSucceeded(paymentIntent);
-  } else if (event.type === 'checkout.session.completed') {
+  if (event.type === 'checkout.session.completed') {
     // For more reliable data, fetch session again
     const sessionId = (event.data.object as any).id;
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     await createOrderCheckout(session);
-  } else if (event.type === 'payment_method.attached') {
-    const paymentMethod = event.data.object as Stripe.PaymentMethod;
-    handlePaymentMethodAttached(paymentMethod);
-  } else {
-    console.log(`Unhandled event type ${event.type}`);
   }
 
   // Acknowledge receipt of the event
@@ -113,70 +153,79 @@ export const webhookCheckout = async (
 //This helper function handles the post-checkout logic.
 //production version
 const createOrderCheckout = async (session: Stripe.Checkout.Session) => {
-  const productId = session.client_reference_id;
-
-  if (!productId) {
-    console.error('Product reference ID is missing from Stripe session.');
-    return;
-  }
-
-  const userEmail = await User.findOne({ email: session.customer_email });
+  const userEmail = session.customer_email;
 
   if (!userEmail) {
-    console.error(`User with email ${session.customer_email} not found.`);
+    console.error('Customer email is missing from Stripe session.');
     return;
   }
 
+  // Find user
   const user = await User.findOne({ email: userEmail });
   if (!user) {
     console.error(`User with email ${userEmail} not found.`);
     return;
   }
 
-  // ensure product exists
-  const product = await Product.findById(productId);
-  if (!product) {
-    console.error(`Product with ID ${productId} not found.`);
+  // Parse shipping address from session metadata
+  const addressStr = session.metadata?.address;
+  const address: IShippingAddress = addressStr ? JSON.parse(addressStr) : {};
+
+  // Parse orderItems from session metadata
+  const orderItemsStr = session.metadata?.orderItems;
+  const orderItemsData: { productId: string; quantity: number }[] =
+    orderItemsStr ? JSON.parse(orderItemsStr) : [];
+
+  if (!orderItemsData || orderItemsData.length === 0) {
+    console.error('No order items found in session metadata.');
     return;
   }
 
-  // Make sure amount_total exists and is accurate
-  const amountTotal = session.amount_total ?? 0;
-  const price = amountTotal / 100;
-
-  // Prevent duplicate orders: check if an order with same session ID exists
+  // Check for existing order
   const existingOrder = await Order.findOne({ stripeSessionId: session.id });
   if (existingOrder) {
     console.log(`Order for session ${session.id} already exists.`);
     return;
   }
 
+  // Prepare orderItems array
+  const orderItems: IOrderItems[] = [];
+
+  for (const item of orderItemsData) {
+    const product = await Product.findById(item.productId);
+    if (!product) {
+      console.error(`Product with ID ${item.productId} not found.`);
+      continue; // handle error
+    }
+
+    // Populate order item details
+    orderItems.push({
+      product: product._id as Types.ObjectId,
+      quantity: item.quantity,
+      priceAtTimeOfOrder: product.price,
+      thumbnail: product.thumbnail as string,
+    });
+  }
+
+  // Calculate total price
+  const amountTotal = session.amount_total ?? 0;
+  const totalPrice = amountTotal / 100;
+
+  // Create order
   await Order.create({
-    product: new Types.ObjectId(productId),
     user: user._id,
-    price,
+    shippingAddress: address,
+    orderItems: orderItems,
+    price: totalPrice,
     stripeSessionId: session.id,
+    name: user.name,
+    status: 'pending',
+    paid: true,
   });
 
   console.log(
-    `Order created for user ${user.email} and product ${product.name}`,
+    `Order created for user ${user.email} with ${orderItems.length} items.`,
   );
-};
-
-// handle payment intent success
-const handlePaymentIntentSucceeded = async (
-  paymentIntent: Stripe.PaymentIntent,
-) => {
-  console.log(
-    `PaymentIntent ${paymentIntent.id} succeeded for amount ${paymentIntent.amount}`,
-  );
-  // Additional logic if needed
-};
-
-// handle payment method attached
-const handlePaymentMethodAttached = (paymentMethod: Stripe.PaymentMethod) => {
-  console.log(`PaymentMethod ${paymentMethod.id} attached successfully`);
-  // Additional logic if needed
 };
 
 // MW to set the filter for user-specific data
@@ -190,7 +239,42 @@ const setUserFilter = (
   next();
 };
 
-const createOrder = factory.createOne<IOrder>(Order, 'order');
+// Controller to create a new order
+const createOrder = catchAsync(
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const { shippingAddress, orderItems } = req.body;
+
+    // Validate required fields
+    if (
+      !shippingAddress ||
+      !orderItems ||
+      !Array.isArray(orderItems) ||
+      orderItems.length === 0
+    ) {
+      return next(
+        new AppError('Shipping address and order items are required.', 400),
+      );
+    }
+
+    // Create new order document
+    const newOrder = await Order.create({
+      user: req.user._id,
+      shippingAddress,
+      orderItems,
+      paid: false,
+      status: 'pending',
+    });
+
+    // Respond with order data
+    res.status(201).json({
+      status: 'success',
+      message: 'Order created successfully',
+      data: {
+        order: newOrder,
+      },
+    });
+  },
+);
 
 const getAllOrders = factory.getAll<IOrder>(Order, 'orders');
 

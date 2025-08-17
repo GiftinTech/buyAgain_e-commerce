@@ -47,15 +47,15 @@ const Header = () => {
   const navLinks: NavLinks[] = [
     {
       name: 'Home',
-      url: '#home',
+      url: '/',
     },
     {
       name: 'Shop',
-      url: '#shop',
+      url: '/',
     },
     {
       name: 'Categories',
-      url: '#categories',
+      url: '/',
     },
   ];
 
@@ -278,7 +278,7 @@ const Header = () => {
             {navLinks.map((link, i) => (
               <a
                 key={i}
-                href={link.url}
+                onClick={() => navigate(link.url)}
                 className="font-semibold hover:text-pink-500"
               >
                 {link.name}
