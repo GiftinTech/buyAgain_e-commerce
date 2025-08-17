@@ -23,6 +23,14 @@ const Checkout = () => {
   const token = getAuthToken();
   const { user } = useAuth();
 
+  const orderItems = cartItems.map((item) => ({
+    product: item.product.id,
+    quantity: item.quantity,
+    priceAtTimeOfOrder: item.product.price,
+  }));
+
+  console.log('Order Items:', orderItems);
+
   const [name, setName] = useState('');
   const [shippingAddress, setShippingAddress] = useState<IShippingAddress>({
     street: '',
@@ -49,9 +57,7 @@ const Checkout = () => {
       body: JSON.stringify({
         user: user?.data?.users?._id || user?.data?.users?.email,
         shippingAddress,
-        orderItems: cartItems,
-        paid: false,
-        status: 'pending',
+        orderItems,
       }),
     });
     const orderData = await response.json();
@@ -63,7 +69,11 @@ const Checkout = () => {
     setLoading(true);
     try {
       const order = await createOrder();
-      const orderId = order.id; // id from DB
+      console.log('Order created:', order);
+
+      const orderId = order.data.order.id; // id from DB
+
+      console.log('Order id:', orderId);
 
       const stripe = await stripePromise;
       if (!stripe) throw new Error('Stripe.js failed to load.');
@@ -74,16 +84,45 @@ const Checkout = () => {
         ...authOptions,
         body: JSON.stringify({ orderId }),
       });
+      console.log('Checkout request sent, response:', res);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Error response:', errorText);
+
+        // If the response is JSON, parse it
+        try {
+          const errorJson = JSON.parse(errorText);
+          console.error('Error details:', errorJson);
+        } catch (e) {
+          console.error('Response is not JSON:', e, errorText);
+        }
+      }
 
       const data = await res.json();
+      console.log('Received checkout session data:', data);
 
-      if (data.sessionId) {
-        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+      // Check if the backend returned a Stripe checkout URL
+      if (data.url) {
+        // Redirect user directly to Stripe checkout page
+        window.location.href = data.url;
+
+        // or, check if backend returns a session id
+      } else if (data.session.id) {
+        const result = await stripe.redirectToCheckout({
+          sessionId: data.session.id,
+        });
+
+        if (result.error) {
+          console.error('Stripe redirect error:', result.error);
+          alert(result.error.message);
+        }
       } else {
+        console.error('No sessionId in response:', data);
         alert('Failed to get checkout session');
       }
     } catch (err: any) {
-      console.error(err);
+      console.error('Error during checkout:', err);
       alert('Error during checkout: ' + err.message);
     } finally {
       setLoading(false);

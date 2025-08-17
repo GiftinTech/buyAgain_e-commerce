@@ -288,7 +288,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
           const data = await response.json();
           console.log('API response data:', data);
           setCart(data.data);
-          setCartItems(data.data);
+          setCartItems(data.data.items);
         } else {
           const cartErrorData = await response.json();
           throw new Error(

@@ -14,6 +14,9 @@ import catchAsync from '../utils/catchAsync';
 import Product, { IProduct } from '../models/productModel';
 import AppError from '../utils/appError';
 
+// Frontend URL
+const frontend_url = process.env.FRONTEND_URL;
+
 // Stripe payment config
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-07-30.basil',
@@ -60,7 +63,7 @@ const getCheckoutSession = catchAsync(
           unit_amount: Math.round(product.price * 100),
           product_data: {
             name: product.name,
-            image: product.thumbnail,
+            images: [product.thumbnail],
           },
         },
       };
@@ -85,9 +88,8 @@ const getCheckoutSession = catchAsync(
       //    success_url: `${req.protocol}://${req.get('host')}/orders/?product=${
       //   req.params.productId
       // }&user=${req.user.id}&price=${product.price}`, // remove in prod
-      success_url: `${req.protocol}://${req.get('host')}/?alert=order`,
-
-      cancel_url: `${req.protocol}://${req.get('host')}/orders/${productSlug}`,
+      success_url: `${frontend_url}/?alert=order`,
+      cancel_url: `${frontend_url}/orders/${productSlug}`,
       customer_email: req.user.email,
       client_reference_id: orderId,
       line_items: lineItems,
