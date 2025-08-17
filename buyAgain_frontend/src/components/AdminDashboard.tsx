@@ -1,5 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useCallback, useEffect, useState } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import useTheme from '../hooks/useTheme';
@@ -14,9 +16,15 @@ import ProductManagement from './ui/dashboard/ProductManagement';
 import useCart from '../hooks/useShopping';
 
 import useAuth from '../hooks/useAuth';
+import useCart from '../hooks/useShopping';
+
+import useAuth from '../hooks/useAuth';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+
+  const { setLoading, setError, setProductList, handleFetchProduct } =
+    useCart();
 
   const { setLoading, setError, setProductList, handleFetchProduct } =
     useCart();
@@ -29,6 +37,7 @@ const AdminDashboard: React.FC = () => {
     'dashboard' | 'users' | 'products'
   >('dashboard');
 
+  // get login user profile
   // get login user profile
   const userProfile = user?.data.users;
 
@@ -116,7 +125,9 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {activeTab === 'users' && <UserManagement />}
+          {activeTab === 'users' && <UserManagement />}
 
+          {activeTab === 'products' && <ProductManagement />}
           {activeTab === 'products' && <ProductManagement />}
         </main>
       </div>
