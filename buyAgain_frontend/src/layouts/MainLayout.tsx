@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 
 import { Outlet } from 'react-router-dom';
 import Footer from '../components/Footer';
@@ -6,7 +6,7 @@ import Header from '../components/Header';
 
 const MainLayout: React.FC = () => {
   return (
-    <Fragment>
+    <div>
       <Header />
 
       <main>
@@ -16,7 +16,7 @@ const MainLayout: React.FC = () => {
       <footer>
         <Footer />
       </footer>
-    </Fragment>
+    </div>
   );
 };
 

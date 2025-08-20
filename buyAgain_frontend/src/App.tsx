@@ -14,6 +14,7 @@ import Checkout from './components/Checkout';
 import useAuth from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './pages/Unauthorized';
+import AlertContainer from './utils/alert';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -31,6 +32,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<ProductListing />} />
@@ -50,6 +52,7 @@ function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <AlertContainer />
     </>
   );
 }

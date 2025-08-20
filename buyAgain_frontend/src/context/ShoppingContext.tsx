@@ -164,19 +164,10 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     setLoading(true);
     setError('');
     try {
-      if (!token) {
-        // Handle unauthenticated user.
-        navigate('/login');
-        setError('Please login to view your cart.');
-        setLoading(false);
-        return;
-      }
-
       const response = await fetch(`${BUYAGAIN_API_BASE_URL}/cart`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Send auth token
         },
       });
 
@@ -222,11 +213,7 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     async (cartItemId: string, newQuantity: number) => {
       setLoading(true);
       setError('');
-      if (!token) {
-        setError('Please login to add to cart.');
-        navigate('/login'); // Redirect to login if unauthenticated
-        return;
-      }
+
       try {
         const response = await fetch(
           `${BUYAGAIN_API_BASE_URL}/cart/${cartItemId}`,
@@ -234,7 +221,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ quantity: newQuantity }),
           },
@@ -263,17 +249,12 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     async (productDetails: IProduct) => {
       setLoading(true);
       setError('');
-      if (!token) {
-        setError('Please login to add to cart.');
-        navigate('/login'); // Redirect to login if unauthenticated
-        return;
-      }
+
       try {
         const response = await fetch(`${BUYAGAIN_API_BASE_URL}/cart`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             product: productDetails.id,
@@ -311,12 +292,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
 
   const handleAddToCart = useCallback(
     async (productDetails: IProduct) => {
-      if (!token) {
-        setError('Please login to add to cart.');
-        navigate('/login'); // Redirect to login if unauthenticated
-        return;
-      }
-
       const existingCartItem = cartItems.find(
         (item) => item.product.id === productDetails.id,
       );
@@ -339,11 +314,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     async (cartItem: ICartItem, isFullyRemoved: boolean) => {
       setLoading(true);
       setError('');
-      if (!token) {
-        setError('Please login to add to cart.');
-        navigate('/login'); // Redirect to login if unauthenticated
-        return;
-      }
 
       try {
         let response;
@@ -369,7 +339,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
             method,
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
             },
             body,
           },
@@ -396,12 +365,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
 
   // increase quantity
   const handleIncreaseQuantity = async (cartItem: ICartItem) => {
-    if (!token) {
-      setError('Please login to add to cart.');
-      navigate('/login'); // Redirect to login if unauthenticated
-      return;
-    }
-
     const newQuantity = cartItem.quantity + 1;
 
     try {
@@ -411,7 +374,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ quantity: newQuantity }),
         },
@@ -430,12 +392,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
 
   // decrease quantity
   const handleDecreaseQuantity = async (cartItem: ICartItem) => {
-    if (!token) {
-      setError('Please login to add to cart.');
-      navigate('/login'); // Redirect to login if unauthenticated
-      return;
-    }
-
     const newQuantity = cartItem.quantity - 1;
 
     try {
@@ -446,9 +402,6 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
           `${BUYAGAIN_API_BASE_URL}/cart/${cartItem._id}`,
           {
             method: 'DELETE',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           },
         );
       } else {

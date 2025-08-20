@@ -74,24 +74,63 @@ const adminDelegateRole = catchAsync(
 // signup new customers
 const signup = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const newUser = await User.create({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
-      role: req.body.role,
-    });
+    let newUser: any;
 
-    // send welcome email
-    const url = `${req.protocol}://${req.get('host')}/api/v1/users/me`;
-    const email = new Email(newUser, url);
-    await email.sendWelcome(req.body.emailTemplate);
+    try {
+      newUser = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        passwordConfirm: req.body.passwordConfirm,
+        role: req.body.role,
+      });
 
-    createSendToken(newUser, 201, req, res);
+      const url = `${req.protocol}://${req.get('host')}/api/v1/users/me`;
+      const email = new Email(newUser, url);
+
+      try {
+        await email.sendWelcome(req.body.emailTemplate);
+        console.log('Welcome email sent successfully to:', newUser.email);
+      } catch (err) {
+        // Log the error but continue with user signup
+        console.error('Error sending welcome email to:', newUser.email, err);
+        // send a notification to an admin later
+      }
+
+      createSendToken(newUser, 201, req, res);
+    } catch (error: any) {
+      if (newUser && newUser._id) {
+        console.error(
+          'Error occurred after user creation. Attempting to roll back user:',
+          newUser.email,
+          error,
+        );
+        try {
+          await User.findByIdAndDelete(newUser._id);
+          console.log(
+            'Successfully deleted user due to subsequent error:',
+            newUser.email,
+          );
+        } catch (deleteError: any) {
+          console.error(
+            'CRITICAL ERROR: Failed to delete user after email sending failure for:',
+            newUser.email,
+            deleteError,
+          );
+        }
+        return next(
+          new AppError(
+            'An error occurred during signup. Please try again later or contact support.',
+            500,
+          ),
+        );
+      }
+
+      return next(error);
+    }
   },
 );
 
-// login customers
 const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     const { email, password } = req.body;

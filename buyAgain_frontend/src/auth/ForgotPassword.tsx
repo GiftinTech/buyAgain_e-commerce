@@ -10,6 +10,10 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // UX states for ForgotPassword
+  const [isEmailValid, setIsEmailValid] = useState(true);
+  const [emailTouched, setEmailTouched] = useState(false);
+
   // Hook for navigation
   const navigate = useNavigate();
 
@@ -20,11 +24,35 @@ const ForgotPassword = () => {
     }
   }, [user, navigate]);
 
+  // Email validation logic
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(email);
+    // Set isEmailValid to true if email is empty (no error if user hasn't typed yet)
+    setIsEmailValid(isValid || email.length === 0);
+  }, [email]);
+
+  // Determine if the submit button should be disabled
+  const canSubmit =
+    email.trim() !== '' && isEmailValid && !isSubmitting && !loadingAuth;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setStatus('');
     setError('');
+
+    // Client-side validation before sending to backend
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      setIsSubmitting(false);
+      return;
+    }
+    if (!isEmailValid) {
+      setError('Please enter a valid email address.');
+      setIsSubmitting(false);
+      return;
+    }
 
     const result = await handleForgotPassword(email);
     if (result.success) {
@@ -32,11 +60,11 @@ const ForgotPassword = () => {
         result.message || 'A password reset link has been sent to your email.',
       );
       setError('');
-      setEmail('');
+      setEmail(''); // Clear email field on success
 
       console.log('Reset link sent to:', email);
     } else {
-      console.log('An unknown error ocuurred');
+      console.log('An error occurred during password reset request');
       setStatus('');
       setError(
         result.message ||
@@ -62,13 +90,22 @@ const ForgotPassword = () => {
             type="email"
             placeholder="Enter your email"
             value={email}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setEmail(e.target.value)
-            }
-            className="w-full rounded-lg border border-gray-300 p-3 text-black focus:outline-none focus:ring-2 focus:ring-pink-500"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setEmail(e.target.value);
+              setError(''); // Clear general error on input change
+              setStatus(''); // Clear status message on input change
+            }}
+            onBlur={() => setEmailTouched(true)} // Mark email as touched on blur
+            className={`w-full rounded-lg border p-3 text-black focus:outline-none focus:ring-1 ${emailTouched && email.length > 0 && !isEmailValid ? 'border-red-500 focus:ring-red-500' : email.length > 0 && isEmailValid ? 'border-green-500 focus:ring-green-500' : 'border-gray-300 focus:ring-gray-300 dark:border-gray-700'}`}
             required
             disabled={isSubmitting || loadingAuth}
           />
+          {emailTouched && email.length > 0 && !isEmailValid && (
+            <p className="mt-1 text-sm text-red-500">
+              Please enter a valid email address.
+            </p>
+          )}
+
           {status && (
             <p className="rounded-md bg-green-50 p-2 text-center text-sm text-green-600 dark:bg-green-200 dark:text-black">
               {status}
@@ -81,8 +118,8 @@ const ForgotPassword = () => {
           )}
           <button
             type="submit"
-            className="w-full rounded-lg bg-pink-700 py-3 font-bold text-white transition hover:bg-pink-600"
-            disabled={isSubmitting || loadingAuth}
+            className={`w-full rounded-lg py-3 font-bold text-white transition ${canSubmit ? 'bg-pink-700 hover:bg-pink-600' : 'cursor-not-allowed bg-gray-400'}`}
+            disabled={!canSubmit}
           >
             {isSubmitting || loadingAuth
               ? 'Sending Link...'

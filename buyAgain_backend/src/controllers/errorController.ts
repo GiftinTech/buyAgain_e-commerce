@@ -36,6 +36,10 @@ const handleMongooseError = (): AppError =>
     500,
   );
 
+// handle Error from MailTrap
+const signupAPIError = (): AppError =>
+  new AppError('Cannot signup at the moment. Please try again later.', 500);
+
 // Sends detailed error in development mode
 const sendErrorDev = (err: any, res: Response): void => {
   res.status(err.statusCode).json({
@@ -96,10 +100,11 @@ const globalErrorHandler = (
     error = handleJWTExpiredError();
   } else if (error.name === 'MongooseError') {
     error = handleMongooseError();
+  } else if (error.name === 'Signup API error') {
+    error = signupAPIError();
   }
-
-  // Send the error response based on environment
   if (process.env.NODE_ENV === 'development') {
+    // Send the error response based on environment
     sendErrorDev(error, res);
   } else if (process.env.NODE_ENV === 'production') {
     sendErrorProd(error, res);

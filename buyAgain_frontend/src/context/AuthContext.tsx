@@ -177,17 +177,24 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         // After successful registration, immediately try to log in
         return handleLogin(email, password);
       } else {
+        const errorMessage =
+          data.message || 'Signup failed due to server error.';
+        console.error('Signup API error:', errorMessage);
+        setAppError(errorMessage);
         return {
           success: false,
-          error: data.message || 'Signup failed.',
+          error: errorMessage,
         };
       }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      setAppError(error);
+      // This catch block handles network errors (e.g., no internet, API server down)
+      const errorMessage =
+        error.message || 'An unexpected network error occurred during signup.';
+      console.error('Signup network error:', error);
+      setAppError(errorMessage);
       return {
         success: false,
-        error: error.message || 'An unexpected error occurred during signup.',
+        error: errorMessage,
       };
     }
   };
