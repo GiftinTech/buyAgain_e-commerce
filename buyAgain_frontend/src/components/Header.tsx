@@ -12,13 +12,11 @@ import {
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import useTheme from '../hooks/useTheme';
-import Logout from '../auth/Logout';
 
 // Assuming a basic structure for products fetched from API for search terms
 interface IProductSearch {
   category: string;
   tags: string[];
-  // You can add 'title' or 'name' here if you want to use product names as search terms
 }
 
 interface NavLinks {
@@ -29,11 +27,10 @@ interface NavLinks {
 const Header = () => {
   const { user } = useAuth();
 
-  const logout = Logout();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [popularSearchTerms, setPopularSearchTerms] = useState<string[]>([]); // state for dynamic search terms
+  const [popularSearchTerms, setPopularSearchTerms] = useState<string[]>([]);
 
   const { toggleTheme, theme } = useTheme();
 
@@ -81,10 +78,6 @@ const Header = () => {
           if (product.tags) {
             product.tags.forEach((tag) => extractedTerms.add(tag));
           }
-          // If you want product titles as popular searches:
-          // if (product.title) {
-          //   extractedTerms.add(product.title);
-          // }
         });
         setPopularSearchTerms(Array.from(extractedTerms));
       } catch (err) {
@@ -103,7 +96,6 @@ const Header = () => {
   return (
     <header className="relative z-40 bg-white dark:bg-black">
       {' '}
-      {/* Added z-50 here */}
       {/* Top Row */}
       <div className="flex items-center justify-between px-4 py-3 lg:px-8">
         <div className="flex items-center">
@@ -135,30 +127,34 @@ const Header = () => {
               onChange={(e) => setSearchValue(e.target.value)}
               aria-label="Search products"
             />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500">
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500"
+              onClick={() => {
+                navigate(`/?category=${encodeURIComponent(searchValue)}`);
+              }}
+            >
               <Search size={18} />
             </button>
           </div>
 
-          {/* Dropdown of popular searches (now dynamic) */}
+          {/* Dropdown of popular searches */}
           {searchFocus && filteredSearches.length > 0 && (
             <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-lg bg-white p-2 shadow-lg dark:bg-gray-900">
-              {' '}
-              {/* Added z-50 here for the dropdown */}
+              {/* Added z-50 here */}
               {filteredSearches.map((item: string) => (
-                <div
-                  key={item} // Changed key to item (string) for uniqueness if terms are unique
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
-                  onClick={() => {
-                    setSearchValue(item); // Set search input to clicked term
-                    setSearchFocus(false); // Close dropdown
-                    // trigger a search
-                    navigate(`/products?q=${item}`);
+                <button
+                  key={item} // Changed key to item
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSearchValue(item);
+                    navigate(`/?category=${encodeURIComponent(item)}`);
+                    setSearchFocus(false);
                   }}
                 >
                   <Search size={16} className="text-pink-500" />
                   <span>{item}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -174,7 +170,6 @@ const Header = () => {
             aria-label="Toggle dark mode"
           >
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}{' '}
-            {/* Updated based on your theme state */}
           </button>
           {user ? (
             <>
@@ -183,38 +178,38 @@ const Header = () => {
               </div>
               <button
                 className="inline-flex items-center gap-1 font-semibold hover:text-pink-500"
-                onClick={() => alert('Get Wishlist Items')} // Consider replacing alert()
+                onClick={() => alert('Get Wishlist Items')}
                 aria-label="View wishlist"
               >
                 <Heart size={18} />
-              </button>
-              <button
-                className="flex items-center gap-1 rounded-md bg-black px-3 py-1 text-white hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-gray-200"
-                aria-label="Logout"
-                onClick={logout}
-              >
-                Logout
               </button>
               <ShoppingCart
                 size={22}
                 className="cursor-pointer"
                 onClick={() => navigate('/cart')}
               />{' '}
-              {/* Added onClick for cart */}
-              <div className="flex max-h-9 max-w-9 cursor-pointer rounded-full">
+              <button
+                onClick={() => navigate('/me')}
+                className="flex max-h-9 max-w-9 cursor-pointer rounded-full"
+              >
                 {userProfile?.photo ? (
                   <img
                     src={userProfile.photo}
                     alt={userProfile.name || 'user profile photo'}
-                    className="h-full w-full rounded-full object-cover" // Added object-cover to prevent distortion
+                    className="h-full w-full rounded-full object-cover"
                   />
                 ) : (
                   <User size={18} />
                 )}
-              </div>
+              </button>
             </>
           ) : (
             <>
+              <ShoppingCart
+                size={22}
+                className="cursor-pointer"
+                onClick={() => navigate('/cart')}
+              />{' '}
               <button
                 className="inline-flex items-center gap-1 font-semibold hover:text-pink-500"
                 onClick={() => navigate('/signup')}
@@ -244,7 +239,12 @@ const Header = () => {
             onChange={(e) => setSearchValue(e.target.value)}
             aria-label="Search products"
           />
-          <button className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500">
+          <button
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-pink-700 p-2 text-white hover:bg-pink-500"
+            onClick={() => {
+              navigate(`/?category=${encodeURIComponent(searchValue)}`);
+            }}
+          >
             <Search size={18} />
           </button>
         </div>
@@ -253,18 +253,19 @@ const Header = () => {
             {' '}
             {/* Added z-50 here */}
             {filteredSearches.map((item: string) => (
-              <div
+              <button
                 key={item} // Changed key to item
-                className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
-                onClick={() => {
+                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
+                onMouseDown={(e) => {
+                  e.preventDefault();
                   setSearchValue(item); // Set search input to clicked term
+                  navigate(`/?category=${encodeURIComponent(item)}`);
                   setSearchFocus(false); // Close dropdown
-                  // Trigger search logic here
                 }}
               >
                 <Search size={16} className="text-pink-500" />
                 <span>{item}</span>
-              </div>
+              </button>
             ))}
           </div>
         )}

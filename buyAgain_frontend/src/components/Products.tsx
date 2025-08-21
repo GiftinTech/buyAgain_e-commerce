@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShoppingCart, Star, Tag } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Tag } from 'lucide-react';
 import type { IProduct } from '../context/ShoppingContext';
 import useCart from '../hooks/useShopping';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -9,41 +10,48 @@ import { useAlert } from '../hooks/useAlert';
 const ProductListing: React.FC = () => {
   const { showAlert } = useAlert();
   const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false); // Flag to prevent multiple fetches
-
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const handleNavigateToProductDetails = (getCurrentProductId: string) => {
+    if (!getCurrentProductId) return;
     navigate(`/product-details/${getCurrentProductId}`);
   };
 
-  const fetchProduct = useCallback(async () => {
-    if (hasFetched) return; // Prevent refetch
-    setHasFetched(true);
-
-    try {
-      setLoading(true);
-      setError('');
-      const result = await handleFetchProduct();
-
-      if (result.success && result.products) {
-        setProducts(result.products);
-      } else {
-        setError(result.message || 'Failed to load products.');
-        setProducts([]); // Ensure products is empty on error
+  // Memoize fetchProduct outside of useEffect
+  const fetchProduct = useCallback(
+    async (q: string | null) => {
+      try {
+        setLoading(true);
+        setError('');
+        const result = await handleFetchProduct(q || '');
+        if (result.success && result.products) {
+          setProducts(result.products);
+        } else {
+          setError(result.message || 'Failed to load products.');
+          setProducts([]);
+        }
+      } catch (err) {
+        console.error('Error in fetchProducts:', err);
+        setError('An unexpected error occurred while fetching products.');
+        setProducts([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err: unknown) {
-      console.error('Error in fetchProductsData:', err);
-      setError('An unexpected error occurred while fetching products.');
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleFetchProduct, hasFetched]);
+    },
+    [handleFetchProduct], // Make sure handleFetchProduct is stable or memoized
+  );
+
+  // UseEffect with stable dependencies
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('category');
+    fetchProduct(q);
+  }, [location.search]);
 
   // Function to render stars based on average rating
   const renderStars = (averageRating: number) => {
@@ -81,11 +89,8 @@ const ProductListing: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchProduct();
-  }, [fetchProduct]);
-
-  useEffect(() => {
     const params = new URLSearchParams(location.search);
+
     if (params.get('alert') === 'order') {
       showAlert(
         'success',
@@ -122,7 +127,18 @@ const ProductListing: React.FC = () => {
 
   if (products.length === 0) {
     return (
-      <div className="py-8 text-center text-gray-500">No products found.</div>
+      <>
+        <button
+          className="mt-10 flex flex-row gap-2 pl-8 hover:font-semibold"
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft />
+          Back to Products
+        </button>
+        <div className="flex h-[60vh] items-center justify-center py-8 font-semibold text-gray-500">
+          No products found.
+        </div>
+      </>
     );
   }
 
