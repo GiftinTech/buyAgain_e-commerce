@@ -13,10 +13,10 @@ const AlertContainer = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 mx-auto flex h-[60px] w-2/3 items-center justify-center rounded-sm px-8 py-10 ${alertClasses[alert.type]}`}
+      className={`fixed inset-0 z-50 mx-auto flex h-[30px] w-[70%] items-center justify-center rounded-sm px-8 py-10 ${alertClasses[alert.type]}`}
       role="alert"
     >
-      <div className="flex items-center">
+      <div className="flex justify-center">
         <span>{alert.message}</span>
         <button
           onClick={hideAlert}

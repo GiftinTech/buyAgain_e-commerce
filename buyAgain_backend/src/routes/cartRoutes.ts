@@ -5,6 +5,7 @@ import orderController from '../controllers/orderController';
 
 const router = express.Router({ mergeParams: true });
 
+// protected route for users only
 router.use(
   authController.protectRoute,
   authController.restrictTo('user'),
@@ -21,5 +22,7 @@ router
   .route('/:itemId')
   .patch(cartController.updateCartQuantity) // user update quantity only
   .delete(cartController.deleteCartItem); // remove one item
+
+router.post('/merge', cartController.mergeCart);
 
 export default router;

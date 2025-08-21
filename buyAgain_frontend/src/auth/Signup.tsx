@@ -113,7 +113,7 @@ const Signup = () => {
     const result = await handleSignup(name, email, password, passwordConfirm);
 
     if (result.success) {
-      showAlert('success', `Signup successful 🎉! Welcome, ${name}😊`, 7000);
+      showAlert('success', `Signup successful 🎉! Welcome, ${name}😊`, 2);
       navigate('/');
 
       // Clear form fields on success

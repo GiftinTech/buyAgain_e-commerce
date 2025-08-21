@@ -4,16 +4,15 @@ import type { IProduct } from '../context/ShoppingContext';
 import useCart from '../hooks/useShopping';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
-import { showAlert } from '../utils/alert';
+import { useAlert } from '../hooks/useAlert';
 
 const ProductListing: React.FC = () => {
+  const { showAlert } = useAlert();
   const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
   const [products, setProducts] = useState<IProduct[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false); // Flag to prevent multiple fetches
-
-  console.log('cartItems:', cartItems);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -73,7 +72,7 @@ const ProductListing: React.FC = () => {
         <Star
           key={`empty-${i}`}
           size={16}
-          className="text-gray-300" // Unfilled/grey star
+          className="text-gray-500" // Unfilled/grey star
         />,
       );
     }
@@ -91,6 +90,7 @@ const ProductListing: React.FC = () => {
       showAlert(
         'success',
         'Your order was successful! Please check your email for a confirmation. If your order doesn’t show up here immediately, please come back later.',
+        5,
       );
 
       // Remove query param after alert
@@ -98,7 +98,7 @@ const ProductListing: React.FC = () => {
       const newUrl = `${location.pathname}?${params.toString()}`;
       navigate(newUrl, { replace: true });
     }
-  }, [location, navigate]);
+  }, [location, navigate, showAlert]);
 
   // Conditional Rendering for Loading, Error, and No Products
   if (loading) {
@@ -131,7 +131,7 @@ const ProductListing: React.FC = () => {
       {products.map((product: IProduct) => (
         <article
           key={product.id}
-          className="relative flex min-h-[300px] cursor-pointer flex-col overflow-hidden rounded-lg shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
+          className="relative flex min-h-[400px] cursor-pointer flex-col overflow-hidden rounded-lg shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
           onMouseEnter={(e) =>
             (e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.15)')
           }
@@ -146,15 +146,14 @@ const ProductListing: React.FC = () => {
             alt={product.title}
             className="absolute inset-0 z-0 h-full w-full rounded-lg object-cover"
           />
-          {/* Overlay */}
-          <div className="absolute inset-0 z-10 rounded-lg bg-black/10 dark:bg-white/10"></div>{' '}
-          <div className="relative z-20 flex h-full flex-col p-4 text-white">
+          <div className="absolute inset-0 z-10 rounded-lg"></div>{' '}
+          <div className="relative z-20 flex h-full flex-col p-4">
             {' '}
             <h2 className="mb-2 min-h-[3rem] text-center text-lg font-semibold">
               {product.name}
             </h2>
             <div className="mt-auto flex w-full items-center justify-between">
-              <p className="mt-auto flex items-center gap-1 text-xl font-bold text-teal-900">
+              <p className="mt-auto flex items-center gap-1 text-xl font-bold text-teal-700">
                 <Tag size={18} />₦{product.price.toFixed(2)}
               </p>
               {/* Ratings Display */}
@@ -165,7 +164,7 @@ const ProductListing: React.FC = () => {
                     <div className="flex space-x-0.5">
                       {renderStars(product.rating)}
                     </div>
-                    <span className="ml-2 text-sm text-gray-200">
+                    <span className="ml-2 text-sm text-gray-500">
                       ({product.ratingQuantity}){' '}
                     </span>
                   </div>

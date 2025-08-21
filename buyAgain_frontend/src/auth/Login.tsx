@@ -56,15 +56,11 @@ const Login = () => {
     const result = await handleLogin(email, password);
 
     if (result.success) {
-      showAlert('success', 'Logged in successfully!');
+      showAlert('success', 'Logged in successfully!', 1);
       navigate('/'); // Redirect on success
     } else {
       setFormError(result.error || 'Login failed. Please try again.');
-      showAlert(
-        'error',
-        result.error || 'Login failed. Please try again.',
-        5000,
-      );
+      showAlert('error', result.error || 'Login failed. Please try again.', 1);
     }
     setIsSubmitting(false);
   };

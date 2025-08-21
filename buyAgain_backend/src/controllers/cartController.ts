@@ -4,10 +4,30 @@ import Cart from '../models/cartModel';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../utils/appError';
 import mongoose from 'mongoose';
-import { IProduct } from '../models/productModel';
+import Product, { IProduct } from '../models/productModel';
+import { CustomRequest } from '../types';
 
 const getUserCart = catchAsync(
-  async (req: any, res: Response, next: NextFunction) => {
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    if (!req.user || !req.user._id) {
+      console.log(
+        'GET /cart: Request from unauthenticated user. Returning empty cart.',
+      );
+      return res.status(200).json({
+        status: 'success',
+        message: 'No active cart for unauthenticated user.',
+        data: {
+          cartItems: [],
+          cartTotals: {
+            total: 0,
+            discountedTotal: 0,
+            totalProducts: 0,
+            totalQuantity: 0,
+          },
+        },
+      });
+    }
+
     const userId = req.user._id;
 
     // Fetch the cart with populated product details
@@ -18,18 +38,42 @@ const getUserCart = catchAsync(
       .select('items');
 
     if (!cart) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Cart not found.',
+      console.log(
+        `GET /cart: No cart document found for authenticated user ${userId}. Returning empty cart.`,
+      );
+      return res.status(200).json({
+        status: 'success',
+        message: 'No cart found for this user. Your cart is empty.',
+        data: {
+          cartItems: [],
+          cartTotals: {
+            total: 0,
+            discountedTotal: 0,
+            totalProducts: 0,
+            totalQuantity: 0,
+          },
+        },
       });
     }
 
-    // Calculate totals
+    // Calculate totals only if a cart with items is found
     const totals = cart.items.reduce(
       (acc, item) => {
         const product = item.product;
+        // Ensure product is not null/undefined and has expected properties
+        if (
+          !product ||
+          typeof product.price === 'undefined' ||
+          typeof product.discountPercentage === 'undefined'
+        ) {
+          console.warn(
+            `Product details missing for cart item: ${item.product?._id}. Skipping calculation for this item.`,
+          );
+          return acc;
+        }
+
         const price = product.price;
-        const discount = product.discountPercentage;
+        const discount = product.discountPercentage || 0;
         const quantity = item.quantity;
 
         const discountedPrice = price * (1 - discount / 100);
@@ -215,10 +259,76 @@ const clearUserCart = catchAsync(
   },
 ); // Clear the entire cart for a user
 
+// merge anon user cart when authenticated
+const mergeCart = catchAsync(
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const { localCartItems } = req.body;
+    const userId = req.user._id; // Get the auth user's ID from protect MW
+
+    if (!localCartItems || !Array.isArray(localCartItems)) {
+      return next(
+        new AppError('Invalid localCartItems provided. Must be an array.', 400),
+      );
+    }
+
+    // ii. Find the user's cart in db or create a new one if it doesn't exist
+    let userCart = await Cart.findOne({ user: userId });
+
+    if (!userCart) {
+      userCart = await Cart.create({ user: userId, items: [] });
+      console.log(`New cart created for user: ${userId}`);
+    }
+
+    // ii. loop through localCartItems and merge them
+    for (const localItem of localCartItems) {
+      const productId = localItem.productId; // frontend product id
+      const quantity = localItem.quantity;
+
+      // Validate productId is a valid MongoDB ObjectId to prevent errors
+      if (!mongoose.Types.ObjectId.isValid(productId)) {
+        console.warn(
+          `Invalid productId received during cart merge: ${productId}. Skipping item.`,
+        );
+        continue; // Skip this item if productId is not a valid ObjectId format
+      }
+
+      const existingCartItemIndex = userCart.items.findIndex(
+        (item: any) => item.product.toString() === productId, // Compare the product's ObjectId string
+      );
+
+      if (existingCartItemIndex > -1) {
+        // Item already exists in DB cart, update quantity
+        userCart.items[existingCartItemIndex].quantity += quantity;
+      } else {
+        // Item does not exist in DB cart, add it as a new entry
+        userCart.items.push({
+          _id: new mongoose.Types.ObjectId(),
+          product: new mongoose.Types.ObjectId(`${productId}`),
+          quantity: quantity,
+        });
+      }
+    }
+
+    // iii. Save the merged cart to the database
+    await userCart.save();
+
+    console.log(`Cart merged successfully for user: ${userId}`);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Cart items merged successfully with your account.',
+      data: {
+        cart: userCart,
+      },
+    });
+  },
+);
+
 export default {
   addToCart,
   getUserCart,
   updateCartQuantity,
   deleteCartItem,
   clearUserCart,
+  mergeCart,
 };

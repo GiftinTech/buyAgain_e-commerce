@@ -227,6 +227,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
           if (isTokenValid) {
             const userProfile = await fetchUserProfile(accessToken);
             setUser(userProfile);
+
             return { success: true, userProfile };
           } else {
             return {

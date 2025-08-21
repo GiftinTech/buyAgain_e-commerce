@@ -100,7 +100,7 @@ const Cart: React.FC = () => {
         <div className="mt-5 flex gap-2">
           <button
             disabled={!(cartItems?.length > 0)}
-            className="tex-white bg-black px-4 py-3 text-sm font-extrabold disabled:opacity-50"
+            className="bg-black px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50"
             onClick={() => navigate('/checkout')}
           >
             Checkout
