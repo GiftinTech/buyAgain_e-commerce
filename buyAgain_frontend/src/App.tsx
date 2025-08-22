@@ -15,6 +15,8 @@ import useAuth from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './pages/Unauthorized';
 import AlertContainer from './utils/alert';
+import MePage from './components/UserAccount';
+import AccountSettings from './components/ui/dashboard/user/AccountSettings';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -39,8 +41,12 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route element={<ProtectedRoute user={user} requiredRole="user" />}>
+            <Route path="/me" element={<MePage />} />
+            <Route path="/me/settings" element={<AccountSettings />} />
+          </Route>
+          {/* Unauthorized route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
-          {/* checkout page */}
         </Route>
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />

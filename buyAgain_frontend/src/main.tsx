@@ -7,6 +7,7 @@ import AuthProvider from './context/AuthContext';
 import ShoppingCartProvider from './context/ShoppingContext';
 import AdminProvider from './context/AdminContext';
 import { AlertProvider } from './context/AlertContext';
+import ReviewProvider from './context/ReviewContext';
 
 const queryClient = new QueryClient();
 
@@ -15,11 +16,13 @@ createRoot(document.getElementById('root')!).render(
     <AlertProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <ShoppingCartProvider>
-            <AdminProvider>
-              <App />
-            </AdminProvider>
-          </ShoppingCartProvider>
+          <ReviewProvider>
+            <ShoppingCartProvider>
+              <AdminProvider>
+                <App />
+              </AdminProvider>
+            </ShoppingCartProvider>
+          </ReviewProvider>
         </AuthProvider>
       </QueryClientProvider>
     </AlertProvider>

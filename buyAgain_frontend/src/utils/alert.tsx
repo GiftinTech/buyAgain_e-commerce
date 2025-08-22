@@ -13,7 +13,7 @@ const AlertContainer = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 mx-auto flex h-[30px] w-[70%] items-center justify-center rounded-sm px-8 py-10 ${alertClasses[alert.type]}`}
+      className={`fixed inset-x-1/2 top-4 z-50 w-[70%] max-w-3xl -translate-x-1/2 transform rounded-sm px-6 py-3 shadow-lg ${alertClasses[alert.type]}`}
       role="alert"
     >
       <div className="flex justify-center">

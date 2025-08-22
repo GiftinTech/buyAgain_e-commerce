@@ -86,7 +86,7 @@ interface ShopContextType {
     isFullyRemoved: boolean,
   ) => Promise<void>;
   fetchCartItems: () => Promise<void>;
-  handleFetchProduct: () => Promise<{
+  handleFetchProduct: (searchTerm: string | null) => Promise<{
     success: boolean;
     message?: string;
     products?: IProduct[];
@@ -165,7 +165,9 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
   }, []);
 
   // Get all products
-  const handleFetchProduct = async (): Promise<{
+  const handleFetchProduct = async (
+    searchTerm: string | null = '',
+  ): Promise<{
     success: boolean;
     message?: string;
     products?: IProduct[];
@@ -173,9 +175,12 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/products`);
+      const url = searchTerm
+        ? `${BUYAGAIN_API_BASE_URL}/products?category=${encodeURIComponent(searchTerm)}`
+        : `${BUYAGAIN_API_BASE_URL}/products`;
+
+      const response = await fetch(url);
       const data = await response.json();
-      // console.log('PRODUCTS:', data);
       setLoading(false);
 
       if (response.ok) {
@@ -193,9 +198,9 @@ const ShoppingCartProvider = ({ children }: ShopProviderProps) => {
       }
     } catch (cartError: unknown) {
       setError(
-        'cartError fetching products from the server. Please try check your internet connection or try again later.',
+        'Error fetching products from the server. Please check your internet connection or try again later.',
       );
-      console.log('cartError fetching products:', cartError);
+      console.log('Error fetching products:', cartError);
       setProductList([]);
       setLoading(false);
 

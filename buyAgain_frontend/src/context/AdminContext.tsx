@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AdminContext } from '../hooks/useAdmin';
 import type { IProduct } from './ShoppingContext';
 import useFetch from '../hooks/useFetch';
-import getAuthToken from '../utils/getAuthToken';
 import { useLocation } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 
 export interface IUser {
   _id: string;
@@ -20,23 +20,10 @@ export interface User {
   users: IUser[];
 }
 
-interface Product extends IProduct {
+export interface Product extends IProduct {
   id: string;
   name: string;
   stock: number;
-}
-
-export interface IReview {
-  id: string;
-  product: string;
-  user: IUser;
-  review: string;
-  rating: number;
-  createdAt: string;
-}
-
-export interface Review {
-  review: IReview[];
 }
 
 interface ShippingAddress {
@@ -72,11 +59,9 @@ interface AdminContextType {
   // Read-only state from useFetch hooks
   loading: boolean;
   error: string | null;
-  reviewError: string | null;
   orderError: string | null;
   users: User | null;
   products: IProduct[] | null;
-  reviews: Review | null;
   orders: Order | null;
 
   // Functions to trigger CRUD operations
@@ -85,11 +70,7 @@ interface AdminContextType {
     message?: string;
     users?: User | null;
   }>;
-  handleFetchReviews: (product: Product) => Promise<{
-    success: boolean;
-    message?: string;
-    reviews?: Review | null;
-  }>;
+
   handleFetchOrders: () => Promise<{
     success: boolean;
     message?: string;
@@ -112,7 +93,7 @@ const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 // provide the state
 const AdminProvider = ({ children }: AdminProviderProps) => {
-  const token = getAuthToken();
+  const { token } = useAuth();
   const location = useLocation();
 
   const authOptions = useMemo(() => {
@@ -138,15 +119,6 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     error: usersError,
     refetch: refetchUsers,
   } = useFetch<User | null>('/users', authOptions);
-
-  // fetch reviews from DB
-  const {
-    data: fetchedReviews,
-    loading: reviewsLoading,
-    error: reviewsError,
-  } = useFetch<Review>('/reviews'); // Or the correct endpoint
-
-  //console.log('ReviewsError:', reviewsError);
 
   // fetch orders from DB
   const {
@@ -191,38 +163,6 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
       message: 'Users fetched successfully.',
       users: fetchedUsers,
     };
-  };
-
-  const handleFetchReviews = async (
-    product: Product,
-  ): Promise<{
-    success: boolean;
-    message?: string;
-    reviews?: Review | null;
-  }> => {
-    try {
-      const res = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/products/${product.id}/reviews`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to fetch reviews.');
-      }
-
-      const reviewsData: Review = await res.json();
-
-      // Refetch the list to update the UI
-      return { success: true, reviews: reviewsData };
-    } catch (error: any) {
-      console.error('Fetch reviews error:', error);
-      return { success: false, message: error.message };
-    }
   };
 
   const handleFetchOrders = async (): Promise<{
@@ -301,17 +241,14 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
   };
 
   const contextValue: AdminContextType = {
-    loading: productsLoading || usersLoading || reviewsLoading || ordersLoading,
+    loading: productsLoading || usersLoading || ordersLoading,
     error: productsError || usersError,
     users,
     products: fetchedProducts,
-    reviews: fetchedReviews,
-    reviewError: reviewsError,
     orders: fetchedOrders,
     orderError: ordersError,
 
     handleFetchUsers,
-    handleFetchReviews,
     handleFetchOrders,
     handleCreateUser,
     handleUpdateUser,

@@ -22,6 +22,11 @@ router
     authController.restrictTo('user'),
     reviewController.updateReview,
   )
+  .patch(
+    authController.protectRoute,
+    authController.restrictTo('user'),
+    reviewController.updateReview,
+  )
   .delete(
     authController.protectRoute,
     authController.restrictTo('user'),
