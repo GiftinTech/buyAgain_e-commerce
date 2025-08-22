@@ -77,16 +77,18 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ productId }) => {
 
   return (
     <div>
-      <div className="flex flex-row items-center justify-between">
+      <div className="mb-4 flex flex-row items-center justify-between">
         <h2 className="text-2xl font-bold text-white">Customer Reviews</h2>
 
         {/* Add Review Button */}
-        <button
-          className="mt-4 rounded-full border border-pink-700 px-4 py-2 text-sm font-bold text-pink-100 transition-colors hover:bg-pink-900"
-          onClick={() => setShowAddReview(true)}
-        >
-          Add Review
-        </button>
+        {user && (
+          <button
+            className="mt-4 rounded-full border border-pink-700 px-4 py-2 text-sm font-bold text-pink-100 transition-colors hover:bg-pink-900"
+            onClick={() => setShowAddReview(true)}
+          >
+            Add Review
+          </button>
+        )}
       </div>
 
       {/* Scrollable container */}

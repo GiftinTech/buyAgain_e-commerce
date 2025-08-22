@@ -86,7 +86,7 @@ interface ShopContextType {
     isFullyRemoved: boolean,
   ) => Promise<void>;
   fetchCartItems: () => Promise<void>;
-  handleFetchProduct: (searchTerm: string | null) => Promise<{
+  handleFetchProduct: (searchTerm?: string | null) => Promise<{
     success: boolean;
     message?: string;
     products?: IProduct[];
