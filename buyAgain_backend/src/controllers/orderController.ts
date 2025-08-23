@@ -73,7 +73,7 @@ const getCheckoutSession = catchAsync(
     // Filter out failed product lookups
     lineItems.push(...lineItemsResults.filter(Boolean));
 
-    // Save the product slug for cancel_url (assuming all products are from the same order)
+    // Save the product slug for cancel_url
     let productSlug = '';
     if (orderItems.length > 0) {
       const firstProduct = await Product.findById(orderItems[0].product);
@@ -114,7 +114,11 @@ const getCheckoutSession = catchAsync(
   },
 );
 
-const webhookCheckout = async (req: Request, res: Response): Promise<void> => {
+const webhookCheckout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
   // Use the raw body for signature verification
   const sig = req.headers['stripe-signature'] as string;
@@ -125,25 +129,62 @@ const webhookCheckout = async (req: Request, res: Response): Promise<void> => {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err: unknown) {
     if (err instanceof Error) {
-      console.log(`⚠️  Webhook signature verification failed:`, err.message);
-      res
-        .status(400)
-        .send(`Webhook signature verification failed: ${err.message}`);
-      return;
+      return next(
+        new AppError(
+          `Webhook signature verification failed: ${err.message}`,
+          400,
+        ),
+      );
     }
-    console.log(`⚠️  Webhook signature verification failed.`);
-    res.status(400).send(`Webhook signature verification failed.`);
-    return;
+    // Fallback for unknown errors
+    return next(new AppError(`Webhook signature verification failed.`, 400));
   }
 
   console.log('Webhook received! Event type:', event.type);
 
   // Handle the event based on its type
+  if (event.type === 'checkout.session.expired') {
+    const sessionId = (event.data.object as any).id;
+    const order = await Order.findOne({ stripeSessionId: sessionId });
+    if (order) {
+      order.paid = false;
+      order.status = 'cancelled';
+      await order.save();
+    }
+  }
+
   if (event.type === 'checkout.session.completed') {
-    // For more reliable data, fetch session again
     const sessionId = (event.data.object as any).id;
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     await createOrderCheckout(session);
+  }
+
+  if (event.type === 'charge.failed') {
+    const charge = event.data.object as Stripe.Charge;
+    console.log(`Charge failed for charge ID: ${charge.id}`);
+
+    const paymentIntentId = charge.payment_intent;
+
+    // find order associated with this payment intent
+    try {
+      const order = await Order.findOne({ paymentIntentId: paymentIntentId });
+      if (order) {
+        // Update order status
+        order.status = 'failed';
+        order.paid = false;
+        await order.save();
+
+        // notify user via email or other means
+        return next(
+          new AppError(
+            `Order ${order._id} marked as failed due to charge failure.`,
+            400,
+          ),
+        );
+      }
+    } catch (err) {
+      return next(err);
+    }
   }
 
   // Acknowledge receipt of the event
@@ -184,6 +225,9 @@ const createOrderCheckout = async (session: Stripe.Checkout.Session) => {
   // Check for existing order
   const existingOrder = await Order.findOne({ stripeSessionId: session.id });
   if (existingOrder) {
+    existingOrder.paid = true;
+    existingOrder.status = 'processing';
+    await existingOrder.save();
     console.log(`Order for session ${session.id} already exists.`);
     return;
   }
@@ -261,7 +305,7 @@ const createOrder = catchAsync(
       user: req.user._id,
       shippingAddress,
       orderItems,
-      paid: true,
+      paid: false,
       status: 'pending',
     });
 
