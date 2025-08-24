@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShoppingCart, Users, Package, BarChart } from 'lucide-react';
 import useAdmin from '../../../hooks/useAdmin';
-import useCart from '../../../hooks/useShopping';
+import useCart from '../../../hooks/useCart';
 
 const DashboardStats: React.FC = () => {
   const { users, orders } = useAdmin();
@@ -36,7 +36,7 @@ const DashboardStats: React.FC = () => {
         <div>
           <p className="text-gray-500 dark:text-gray-300">Products</p>
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            {productList?.length}
+            {productList?.products.length}
           </h2>
         </div>
       </div>

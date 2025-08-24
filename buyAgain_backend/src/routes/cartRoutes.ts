@@ -8,7 +8,7 @@ const router = express.Router({ mergeParams: true });
 // protected route for users only
 router.use(
   authController.protectRoute,
-  authController.restrictTo('user'),
+  authController.restrictTo('user', 'admin'),
   orderController.setUserFilter,
 );
 

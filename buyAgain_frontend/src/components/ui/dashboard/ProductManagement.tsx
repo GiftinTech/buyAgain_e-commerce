@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Plus, XCircle, Edit, Trash2 } from 'lucide-react';
-import type { IProduct } from '../../../context/ShoppingContext';
+import type { IProduct } from '../../../context/CartContext';
 import useAdmin from '../../../hooks/useAdmin';
-import useCart from '../../../hooks/useShopping';
+import useCart from '../../../hooks/useCart';
 
 const ProductManagement = () => {
   const { productList } = useCart();
@@ -25,7 +25,7 @@ const ProductManagement = () => {
 
   const filteredProducts = useMemo(
     () =>
-      products.filter(
+      products?.products.filter(
         (p) =>
           p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
           String(p.price).toLowerCase().includes(productSearch.toLowerCase()),
@@ -35,7 +35,7 @@ const ProductManagement = () => {
 
   const paginatedProducts = useMemo(() => {
     const start = (productPage - 1) * PAGE_SIZE;
-    return filteredProducts.slice(start, start + PAGE_SIZE);
+    return filteredProducts?.slice(start, start + PAGE_SIZE);
   }, [filteredProducts, productPage]);
 
   const startEditProduct = (product: IProduct) => {
@@ -88,6 +88,8 @@ const ProductManagement = () => {
     setNewProductForm(false);
     setNewProductData({ name: '', price: '', stock: '' });
   };
+
+  if (location.pathname !== '/admin') return null;
 
   return (
     <section className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
@@ -197,7 +199,7 @@ const ProductManagement = () => {
         <thead className="bg-gray-50 dark:bg-gray-600">
           <tr>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              ID
+              S/N
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
               Name
@@ -214,7 +216,7 @@ const ProductManagement = () => {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-600">
-          {paginatedProducts.map((product, i) =>
+          {paginatedProducts?.map((product, i) =>
             editingProduct?.id === product.id ? (
               <tr key={product.id}>
                 <td className="cursor-pointer px-4 py-2 text-sm dark:text-gray-200">
@@ -277,7 +279,10 @@ const ProductManagement = () => {
                 </td>
               </tr>
             ) : (
-              <tr key={product.id}>
+              <tr
+                key={product.id}
+                className='dark:hover:bg-gray-700" hover:bg-gray-50'
+              >
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   {(productPage - 1) * PAGE_SIZE + i + 1}
                 </td>
@@ -285,12 +290,12 @@ const ProductManagement = () => {
                   {product.name}
                 </td>
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {product.price}
+                  ₦{product.price}
                 </td>
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   {product.stock}
                 </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
+                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                   <button
                     onClick={() => startEditProduct(product)}
                     className="mr-4 text-pink-600 hover:text-pink-900 dark:text-pink-400 dark:hover:text-pink-300"
@@ -321,23 +326,29 @@ const ProductManagement = () => {
         >
           Previous
         </button>
-        <span>
-          Page {productPage} of{' '}
-          {Math.ceil(filteredProducts.length / PAGE_SIZE) || 1}
-        </span>
-        <button
-          onClick={() =>
-            setProductPage((p) =>
-              p < Math.ceil(filteredProducts.length / PAGE_SIZE) ? p + 1 : p,
-            )
-          }
-          disabled={
-            productPage >= Math.ceil(filteredProducts.length / PAGE_SIZE)
-          }
-          className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
-        >
-          Next
-        </button>
+        {filteredProducts?.length && (
+          <>
+            <span>
+              Page {productPage} of{' '}
+              {Math.ceil(filteredProducts.length / PAGE_SIZE) || 1}
+            </span>
+            <button
+              onClick={() =>
+                setProductPage((p) =>
+                  p < Math.ceil(filteredProducts.length / PAGE_SIZE)
+                    ? p + 1
+                    : p,
+                )
+              }
+              disabled={
+                productPage >= Math.ceil(filteredProducts.length / PAGE_SIZE)
+              }
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+            >
+              Next
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

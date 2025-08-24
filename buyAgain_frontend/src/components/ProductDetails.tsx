@@ -14,8 +14,8 @@ import {
   ArrowLeft,
 } from 'lucide-react'; // Added more icons
 
-import useCart from '../hooks/useShopping';
-import type { ICartItem } from '../context/ShoppingContext';
+import useCart from '../hooks/useCart';
+import type { ICartItem } from '../context/CartContext';
 import ReviewsSection from './ReviewsSection';
 import { ProductDetailsSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
 // Base URL for buyAgain buyAgain_backend API
@@ -23,9 +23,7 @@ const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 const ProductDetailsPage = () => {
   const {
-    loading,
-    setLoading,
-    setError,
+    productLoading,
     productDetails,
     setProductDetails,
     handleAddToCart,
@@ -79,14 +77,12 @@ const ProductDetailsPage = () => {
   }, []);
 
   const fetchProductDetails = useCallback(async () => {
-    setLoading(true);
     console.log('Loading products details...');
 
     try {
       const res = await fetch(`${BUYAGAIN_API_BASE_URL}/products/${id}`);
 
       if (!res.ok) {
-        setError(res.statusText);
         throw new Error(res.statusText);
       }
 
@@ -95,24 +91,19 @@ const ProductDetailsPage = () => {
 
       if (result) {
         setProductDetails(productDetail);
-        setLoading(false);
-        setError('');
       }
     } catch (err: unknown) {
-      setError('Error fetching product details. Please try again later.');
       console.log('Error fetching product details:', err);
 
       setProductDetails(null);
-    } finally {
-      setLoading(false);
     }
-  }, [id, setLoading, setError, setProductDetails]);
+  }, [id, setProductDetails]);
 
   useEffect(() => {
     if (id) fetchProductDetails();
   }, [id, fetchProductDetails]);
 
-  if (loading) {
+  if (productLoading) {
     return (
       <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
         <ProductDetailsSkeleton />
@@ -290,13 +281,20 @@ const ProductDetailsPage = () => {
                 {/* Price */}
                 <div className="flex flex-col">
                   <p className="flex items-center gap-2 text-4xl font-extrabold text-pink-500">
-                    <Tag size={28} className="text-pink-400" />$
-                    {discountedPrice.toFixed(2)}
+                    <Tag size={28} className="text-pink-400" />₦
+                    {discountedPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </p>
                   {productDetails.discountPercentage > 0 && (
                     <span className="ml-0 mt-1 text-base font-normal text-gray-400 line-through">
-                      ${productDetails.price.toFixed(2)} (
-                      {productDetails.discountPercentage}% OFF)
+                      ₦
+                      {productDetails.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{' '}
+                      ({productDetails.discountPercentage}% OFF)
                     </span>
                   )}
                 </div>

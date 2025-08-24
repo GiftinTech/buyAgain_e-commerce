@@ -74,17 +74,10 @@ interface CartTotals {
   totalQuantity: number;
 }
 
-interface CartResponse {
-  data: {
-    cart: ICart;
-    cartItems: ICartItem[];
-    cartTotals: CartTotals;
-  };
-  status: string;
-}
-
 interface CartContextType {
   loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
   productLoading: boolean;
   productError: string | null;
   cartError: string | null;
@@ -110,6 +103,7 @@ interface CartContextType {
   handleIncreaseQuantity: (cartItem: ICartItem) => Promise<void>;
   handleDecreaseQuantity: (cartItem: ICartItem) => Promise<void>;
   mergeLocalCartToBackend: () => Promise<void>;
+  onPaymentSuccess: () => void;
 }
 
 // Base URL for buyAgain buyAgain_backend API
@@ -154,6 +148,9 @@ const CartProvider = ({ children }: ShopProviderProps) => {
 
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+  const [cartError, setError] = useState<string>('');
+
   // Initialize cartItems from local storage
   const [cartItems, setCartItems] = useState<Array<ICartItem>>(() => {
     const storedCart = localStorage.getItem(LOCAL_STORAGE_CART_KEY);
@@ -188,68 +185,6 @@ const CartProvider = ({ children }: ShopProviderProps) => {
   );
 
   console.log('fetchedProduct from cartContext', fetchedProducts);
-
-  // Fetch Cart Items
-  // Fetch cart only once on mount or when token changes
-  const {
-    data: fetchedCart,
-    loading: cartLoading,
-    error: cartError,
-    refetch: refetchCart,
-  } = useFetch<CartResponse>(
-    '/cart',
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    },
-    false,
-    //location.pathname === '/cart',
-  );
-
-  // Only update state if user or fetchedCart.data changes
-  const hasFetchedRef = useRef(false);
-
-  useEffect(() => {
-    if (!user) {
-      // unauthenticated → load from localStorage
-      const storedCart = localStorage.getItem(LOCAL_STORAGE_CART_KEY);
-      const localCart: ICartItem[] = storedCart ? JSON.parse(storedCart) : [];
-      setCartItems(localCart);
-      setCart(null);
-      setCartTotals(calculateLocalCartTotals(localCart));
-      return;
-    }
-
-    console.log('fetch cart:', fetchedCart?.data.cartItems);
-    if (fetchedCart?.data.cart) {
-      // Only update state if new cart is different
-      console.log('cart', fetchedCart?.data.cart);
-      console.log('cart data', fetchedCart?.data);
-
-      const cartItemsWithId = fetchedCart.data.cartItems.map((item: any) => ({
-        ...item,
-        _id: item._id,
-      }));
-
-      setCart(fetchedCart.data.cart);
-      setCartItems(cartItemsWithId);
-      setCartTotals(fetchedCart.data.cartTotals);
-      hasFetchedRef.current = true;
-      localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
-    }
-
-    // Fallback if fetch fails
-    if (cartError) {
-      const storedCart = localStorage.getItem(LOCAL_STORAGE_CART_KEY);
-      const localCart: ICartItem[] = storedCart ? JSON.parse(storedCart) : [];
-      setCartItems(localCart);
-      setCart(null);
-      setCartTotals(calculateLocalCartTotals(localCart));
-    }
-  }, [user, fetchedCart, cartError]);
 
   const handleFetchProduct = useCallback(
     async (
@@ -290,10 +225,108 @@ const CartProvider = ({ children }: ShopProviderProps) => {
     [refetchProducts, fetchedProducts],
   );
 
+  // Fetch Cart Items
+  const fetchCartItems = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    if (user === null) {
+      // If user is NOT authenticated
+      console.log('User is unauthenticated. Loading cart from local storage.');
+
+      const storedCart = localStorage.getItem(LOCAL_STORAGE_CART_KEY);
+      const localCart: ICartItem[] = storedCart ? JSON.parse(storedCart) : [];
+      setCartItems(localCart);
+      setCart(null); // No backend cart object when unauthenticated
+      setCartTotals(calculateLocalCartTotals(localCart));
+      setLoading(false);
+      return;
+    }
+
+    console.log(
+      'User is authenticated. Attempting to fetch cart from backend.',
+    );
+
+    // If user IS authenticated: proceed with API call to backend
+    try {
+      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/cart`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.status === 401 || response.status === 403) {
+        // Handle unauthorized/forbidden: clear local storage too, as the user session might be invalid
+        localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
+        setCartItems([]);
+        setCart(null);
+        setCartTotals(null);
+        navigate('/');
+        return;
+      }
+
+      if (!response.ok) {
+        const cartErrorData = await response.json();
+        throw new Error(cartErrorData.message || 'Failed to fetch cart items.');
+      }
+
+      const fetchedCartItems = data.data?.cartItems;
+      const fetchedCartTotals = data.data?.cartTotals;
+      const fetchedCart = data.data?.cart;
+
+      if (!fetchedCartItems || !Array.isArray(fetchedCartItems)) {
+        throw new Error(
+          'Backend response for authenticated cart items is malformed or missing expected data.',
+        );
+      }
+
+      setCart(fetchedCart); // Set the full cart object
+      setCartItems(fetchedCartItems); // Array of ICartItem
+      setCartTotals(fetchedCartTotals);
+
+      //  Clear local storage cart once the authenticated cart is successfully loaded
+      localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
+      console.log('Authenticated cart loaded, local storage cart cleared.');
+    } catch (error: unknown) {
+      console.error(
+        'Final Catch Block: Error fetching authenticated cart:',
+        error,
+      );
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'An unknown cartError occurred.',
+      );
+
+      // Fallback to local cart if authenticated fetch fails
+      const storedCart = localStorage.getItem(LOCAL_STORAGE_CART_KEY);
+      const localCart: ICartItem[] = storedCart ? JSON.parse(storedCart) : [];
+      setCartItems(localCart);
+      setCart(null);
+      setCartTotals(calculateLocalCartTotals(localCart));
+      console.log(
+        'Falling back to local cart due to authenticated fetch error.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [user, navigate]);
+
+  // Load cart items on component mount
+  useEffect(() => {
+    if (location.pathname === '/cart' || user !== undefined) fetchCartItems();
+  }, [location.pathname, user, fetchCartItems]);
+
   // Updates the quantity of an existing item in the cart
   const updateCartItemQuantity = useCallback(
     async (cartItemId: string, newQuantity: number) => {
-      console.log('cartitem id', cartItemId);
+      setLoading(true);
+      setError('');
+
       if (!user) {
         // Handle locally for unauthenticated users
         setCartItems((prevItems) => {
@@ -301,6 +334,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             item._id === cartItemId ? { ...item, quantity: newQuantity } : item,
           );
           saveLocalCart(updatedCart); // Save updated local cart
+          setLoading(false);
           return updatedCart;
         });
         return; // Exit if unauthenticated
@@ -313,7 +347,6 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ quantity: newQuantity }),
           },
@@ -326,17 +359,23 @@ const CartProvider = ({ children }: ShopProviderProps) => {
           );
         }
 
-        await refetchCart();
+        await fetchCartItems();
       } catch (updateError: any) {
         console.error('Error updating cart item:', updateError);
+        setError(updateError.message);
+      } finally {
+        setLoading(false);
       }
     },
-    [user, saveLocalCart, refetchCart],
+    [user, saveLocalCart, fetchCartItems],
   );
 
   // Adds product or increments quantity in backend cart
   const addProductToCart = useCallback(
     async (productDetails: IProduct) => {
+      setLoading(true);
+      setError('');
+
       if (!user) {
         // Handle locally for unauthenticated users
         setCartItems((prevItems) => {
@@ -363,6 +402,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             ];
           }
           saveLocalCart(updatedCart); // Save updated local cart
+          setLoading(false);
           return updatedCart;
         });
 
@@ -377,7 +417,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            product: productDetails,
+            product: productDetails.id,
             user: user?.data.users?._id,
             quantity: 1,
           }),
@@ -390,9 +430,8 @@ const CartProvider = ({ children }: ShopProviderProps) => {
           console.log('API response data:', data);
           setCart(data.data);
           setCartItems(data.data.items);
-          console.log('items:', data.data.items);
 
-          await refetchCart();
+          await fetchCartItems();
         } else {
           const cartErrorData = await response.json();
           throw new Error(
@@ -401,9 +440,12 @@ const CartProvider = ({ children }: ShopProviderProps) => {
         }
       } catch (cartError: any) {
         console.error('cartError adding to cart:', cartError);
+        setError(cartError.message);
+      } finally {
+        setLoading(false);
       }
     },
-    [user, token, refetchCart, saveLocalCart, navigate],
+    [user, token, fetchCartItems, saveLocalCart, navigate],
   );
 
   // merge local cart with backend cart
@@ -427,6 +469,10 @@ const CartProvider = ({ children }: ShopProviderProps) => {
       localStorage.removeItem(LOCAL_STORAGE_CART_KEY); // Clear empty local cart
       return;
     }
+
+    console.log('Attempting to merge local cart with backend...');
+    setLoading(true);
+    setError('');
 
     try {
       console.log('Sending POST request to /cart/merge');
@@ -458,15 +504,20 @@ const CartProvider = ({ children }: ShopProviderProps) => {
       console.log(
         'Merge successful. Clearing local storage and refetching cart.',
       );
+      // After successful merge, clear local storage and re-fetch the canonical cart
       localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
 
-      // re-sync cart from backend
-      await refetchCart();
+      await fetchCartItems();
     } catch (mergeError: any) {
       console.error('Error merging local cart to backend:', mergeError);
-      // ❌ don’t clear local cart on failure
+      setError(
+        mergeError.message || 'Failed to synchronize cart with your account.',
+      );
+      // If the merge fails, do NOT clear local storage, so user's items are not lost
+    } finally {
+      setLoading(false);
     }
-  }, [user, token, refetchCart]);
+  }, [user, token, fetchCartItems]);
 
   // ensures merge attempt happens only once, after user is loaded and not during initial loading.
   const hasMergedRef = useRef(false);
@@ -503,12 +554,12 @@ const CartProvider = ({ children }: ShopProviderProps) => {
 
   const handleAddToCart = useCallback(
     async (productDetails: IProduct) => {
+      setLoading(true);
+      setError('');
+
       const existingCartItem = cartItems.find(
         (item) => item.product.id === productDetails.id,
       );
-      console.log('db prod id', productDetails.id);
-
-      console.log('existing id:', existingCartItem?._id);
 
       if (existingCartItem) {
         // If the item exists, update its quantity
@@ -526,6 +577,9 @@ const CartProvider = ({ children }: ShopProviderProps) => {
   // Removes product or decrements quantity in backend cart
   const handleRemoveFromCart = useCallback(
     async (cartItem: ICartItem, isFullyRemoved: boolean) => {
+      setLoading(true);
+      setError('');
+
       if (!user) {
         // Handle locally for unauthenticated users
         setCartItems((prevItems) => {
@@ -542,6 +596,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             );
           }
           saveLocalCart(updatedCart); // Save updated local cart
+          setLoading(false);
           return updatedCart;
         });
         return; // Exit if unauthenticated
@@ -585,16 +640,21 @@ const CartProvider = ({ children }: ShopProviderProps) => {
         }
         showAlert('success', `${cartItem.product.name} removed from cart`, 1);
         // Re-fetch the entire cart to ensure state consistency
-        await refetchCart();
+        await fetchCartItems();
       } catch (cartError: any) {
         console.error('cartError removing from cart:', cartError);
+        setError(cartError.message);
+      } finally {
+        setLoading(false);
       }
     },
-    [user, refetchCart, saveLocalCart],
+    [user, fetchCartItems, saveLocalCart],
   );
 
   // increase quantity
   const handleIncreaseQuantity = async (cartItem: ICartItem) => {
+    setLoading(true);
+    setError('');
     const newQuantity = cartItem.quantity + 1;
 
     if (!user) {
@@ -606,7 +666,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             : item,
         );
         saveLocalCart(updatedCart);
-
+        setLoading(false);
         return updatedCart;
       });
       return; // Exit if unauthenticated
@@ -630,14 +690,22 @@ const CartProvider = ({ children }: ShopProviderProps) => {
         throw new Error(errorData.message || 'Failed to increase quantity.');
       }
 
-      await refetchCart();
+      await fetchCartItems();
     } catch (error) {
       console.error('Error increasing quantity:', error);
+      setError(
+        error instanceof Error ? error.message : 'An unknown error occurred.',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   // decrease quantity
   const handleDecreaseQuantity = async (cartItem: ICartItem) => {
+    setLoading(true);
+    setError('');
+
     const newQuantity = cartItem.quantity - 1;
 
     if (!user) {
@@ -654,7 +722,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
           );
         }
         saveLocalCart(updatedCart);
-
+        setLoading(false);
         return updatedCart;
       });
       return;
@@ -690,14 +758,32 @@ const CartProvider = ({ children }: ShopProviderProps) => {
         throw new Error(errorData.message || 'Failed to decrease quantity.');
       }
 
-      await refetchCart();
+      await fetchCartItems();
     } catch (error) {
       console.error('Error decreasing quantity:', error);
+      setError(
+        error instanceof Error ? error.message : 'An unknown error occurred.',
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
+  // After payment success
+  const onPaymentSuccess = () => {
+    // Clear local cart state
+    setCartItems([]);
+    setCart(null);
+    setCartTotals(null);
+
+    // Remove from local storage
+    localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
+  };
+
   const contextValue: CartContextType = {
-    loading: cartLoading,
+    loading,
+    setLoading,
+    setError,
     productLoading: productsLoading,
     productList: fetchedProducts,
     productError: productsError,
@@ -715,6 +801,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
     handleIncreaseQuantity,
     handleDecreaseQuantity,
     mergeLocalCartToBackend,
+    onPaymentSuccess,
   };
 
   return (

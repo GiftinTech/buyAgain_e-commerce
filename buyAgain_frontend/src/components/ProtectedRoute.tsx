@@ -4,24 +4,26 @@ import type { Data } from '../context/AuthContext';
 
 interface ProtectedRouteProps {
   user: Data | null;
-  requiredRole?: string;
+  requiredRoles?: string[]; // Changed to array of strings
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   user,
-  requiredRole,
+  requiredRoles,
 }) => {
   if (!user) {
     // Not logged in
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user?.data?.users?.role !== requiredRole) {
-    // User doesn't have the necessary role
+  const userRole = user?.data?.users?.role ?? '';
+
+  if (requiredRoles && !requiredRoles.includes(userRole)) {
+    // User doesn't have one of the required roles
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // User is authenticated and authorized
+  // User is authenticated and has one of the required roles
   return <Outlet />;
 };
 

@@ -12,6 +12,7 @@ import {
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import useTheme from '../hooks/useTheme';
+import useCart from '../hooks/useCart';
 
 // Assuming a basic structure for products fetched from API for search terms
 interface IProductSearch {
@@ -26,20 +27,22 @@ interface NavLinks {
 
 const Header = () => {
   const { user } = useAuth();
+  const { toggleTheme, theme } = useTheme();
+  const navigate = useNavigate();
+  const { cartItems } = useCart();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [popularSearchTerms, setPopularSearchTerms] = useState<string[]>([]);
 
-  const { toggleTheme, theme } = useTheme();
-
-  const navigate = useNavigate();
-
   // Base URL for buyAgain buyAgain_backend API
   const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
   const userProfile = user?.data.users; // In PROD, use user?.data.dataKey.photo;
+  console.log(cartItems);
+  // total items in cart
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const navLinks: NavLinks[] = [
     {
@@ -183,11 +186,19 @@ const Header = () => {
               >
                 <Heart size={18} />
               </button>
-              <ShoppingCart
-                size={22}
-                className="cursor-pointer"
-                onClick={() => navigate('/cart')}
-              />{' '}
+
+              <div className="relative flex h-8 w-8 cursor-pointer items-center justify-center">
+                <ShoppingCart
+                  size={22}
+                  className="cursor-pointer"
+                  onClick={() => navigate('/cart')}
+                />
+                {totalItems > 0 && (
+                  <span className="absolute right-1 top-0 -translate-y-1/2 translate-x-1/2 transform rounded-full bg-pink-800 px-2 py-1 text-xs font-semibold text-white shadow-lg">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => navigate('/me')}
                 className="flex max-h-9 max-w-9 cursor-pointer rounded-full"
@@ -205,11 +216,18 @@ const Header = () => {
             </>
           ) : (
             <>
-              <ShoppingCart
-                size={22}
-                className="cursor-pointer"
-                onClick={() => navigate('/cart')}
-              />{' '}
+              <div className="relative flex h-8 w-8 cursor-pointer items-center justify-center">
+                <ShoppingCart
+                  size={22}
+                  className="cursor-pointer"
+                  onClick={() => navigate('/cart')}
+                />
+                {totalItems > 0 && (
+                  <span className="absolute right-1 top-0 -translate-y-1/2 translate-x-1/2 transform rounded-full bg-pink-800 px-2 py-1 text-xs font-semibold text-white shadow-lg">
+                    {totalItems}
+                  </span>
+                )}
+              </div>
               <button
                 className="inline-flex items-center gap-1 font-semibold hover:text-pink-500"
                 onClick={() => navigate('/signup')}
@@ -275,7 +293,7 @@ const Header = () => {
         <div className="z-40 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-black md:block lg:hidden">
           {' '}
           {/* Adjusted z-index for sidebar */}
-          <nav className="flex flex-col space-y-3 p-4">
+          <nav className="flex cursor-pointer flex-col space-y-3 p-4">
             {navLinks.map((link, i) => (
               <a
                 key={i}

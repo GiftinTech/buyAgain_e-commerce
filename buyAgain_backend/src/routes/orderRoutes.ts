@@ -14,6 +14,8 @@ router
   .get(orderController.setUserFilter, orderController.getAllOrders)
   .post(orderController.createOrder);
 
+router.route('/my-orders').get(orderController.getMyOrders);
+
 // Protected and Restricted Routes
 router
   .route('/all')
@@ -21,9 +23,6 @@ router
 
 router.use(authController.restrictTo('admin', 'seller'));
 
-router
-  .route('/:orderId')
-  .put(orderController.updateOrder) // update full order details
-  .patch(orderController.updateOrder); // update partial order details like order status
+router.route('/:orderId').patch(orderController.updateOrder); // update order status
 
 export default router;

@@ -19,6 +19,15 @@ router
     imagesURLController.uploadUserPhoto,
     imagesURLController.resizeUserPhoto,
     imagesURLController.uploadImagesToCloudinary,
+    userController.updateMe,
+  );
+
+router
+  .route('/:id')
+  .get(authController.restrictTo('admin'), userController.getUser)
+  .patch(
+    authController.requireAdmin,
+    authController.adminDelegateRole,
     userController.updateUser,
   );
 

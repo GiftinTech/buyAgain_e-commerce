@@ -222,14 +222,22 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         if (typeof accessToken === 'string' && accessToken.length > 0) {
           localStorage.setItem('access_token', accessToken);
           const isTokenValid = decodeJwt(accessToken);
+          console.log('Decoded JWT:', isTokenValid);
+
           setToken(accessToken);
 
           if (isTokenValid) {
-            const userProfile = await fetchUserProfile(accessToken);
-            setUser(userProfile);
-
-            return { success: true, userProfile };
+            try {
+              const userProfile = await fetchUserProfile(accessToken);
+              console.log('Fetched userProfile:', userProfile);
+              setUser(userProfile);
+              return { success: true, userProfile };
+            } catch (error) {
+              console.error('Error fetching user profile:', error);
+              return { success: false, error: 'Failed to fetch user profile.' };
+            }
           } else {
+            console.error('Invalid token');
             return {
               success: false,
               error: 'Failed to decode user information from token.',

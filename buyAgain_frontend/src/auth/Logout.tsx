@@ -15,6 +15,7 @@ const Logout = () => {
       showAlert('success', 'You have been logged out successfully.');
     }
     if (error) {
+      navigate('/');
       showAlert('error', 'An unknown error occurred when logging out.');
     }
   };

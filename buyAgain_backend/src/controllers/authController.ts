@@ -44,29 +44,40 @@ const requireAdmin = (
 // MW for admin to delegate roles
 const adminDelegateRole = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    // i. get user id and newRole
     const { id } = req.params;
-    const { newRole } = req.body;
+    const { email, name, newRole } = req.body;
 
-    // ii. validate that the new role is one of the allowed roles
-    const validRoles = ['user', 'admin', 'seller'];
-    if (!validRoles.includes(newRole))
-      return next(new AppError('Invalid role specified.', 400));
+    const updateFields: any = {};
 
-    // iii. find user and update their role
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { role: newRole },
-      {
-        new: true, // return the updated doc
-        runValidators: true, // run userModel.role validators
-      },
-    );
+    if (email) {
+      updateFields.email = email;
+    }
 
-    // iv. check if user was found and updated
+    if (name) {
+      updateFields.name = name;
+    }
+
+    // Validate newRole if provided
+    if (newRole) {
+      const validRoles = ['user', 'admin', 'seller'];
+      if (!validRoles.includes(newRole))
+        return next(new AppError('Invalid role specified.', 400));
+      updateFields.role = newRole;
+    }
+
+    // Check if there's anything to update
+    if (Object.keys(updateFields).length === 0) {
+      return next(new AppError('No valid fields provided for update.', 400));
+    }
+
+    // Find and update user
+    const updatedUser = await User.findByIdAndUpdate(id, updateFields, {
+      new: true,
+      runValidators: true,
+    });
+
     if (!updatedUser) return next(new AppError('User not found', 404));
 
-    // v. send response
     createSendToken(updatedUser, 200, req, res);
   },
 );

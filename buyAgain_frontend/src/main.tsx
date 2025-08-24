@@ -4,7 +4,7 @@ import App from './App';
 import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AuthProvider from './context/AuthContext';
-import ShoppingCartProvider from './context/ShoppingContext';
+import CartProvider from './context/CartContext';
 import AdminProvider from './context/AdminContext';
 import { AlertProvider } from './context/AlertContext';
 import ReviewProvider from './context/ReviewContext';
@@ -17,11 +17,11 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <ReviewProvider>
-            <ShoppingCartProvider>
+            <CartProvider>
               <AdminProvider>
                 <App />
               </AdminProvider>
-            </ShoppingCartProvider>
+            </CartProvider>
           </ReviewProvider>
         </AuthProvider>
       </QueryClientProvider>

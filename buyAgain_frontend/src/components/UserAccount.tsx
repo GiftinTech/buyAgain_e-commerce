@@ -1,4 +1,4 @@
-import { User, ShoppingBag, Heart, ArrowLeft } from 'lucide-react';
+import { User, ShoppingBag, Heart, ArrowLeft, ChartLine } from 'lucide-react';
 import Logout from '../auth/Logout';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
@@ -41,7 +41,19 @@ const MePage: React.FC = () => {
 
         {/* Account Options */}
         <div className="mt-6 w-full max-w-md space-y-4">
-          <div className="flex cursor-pointer items-center gap-3 rounded-xl border-b border-gray-200 p-4 hover:bg-pink-50">
+          {userProfile?.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl border-b border-gray-200 p-4 hover:bg-pink-50"
+            >
+              <ChartLine className="text-pink-500" />
+              <span className="font-medium">Admin Dashboard</span>
+            </button>
+          )}
+          <div
+            onClick={() => navigate('/me/orders')}
+            className="flex cursor-pointer items-center gap-3 rounded-xl border-b border-gray-200 p-4 hover:bg-pink-50"
+          >
             <ShoppingBag className="text-pink-500" />
             <span className="font-medium">My Orders</span>
           </div>

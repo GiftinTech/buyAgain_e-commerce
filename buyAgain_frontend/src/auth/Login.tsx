@@ -54,10 +54,13 @@ const Login = () => {
     }
 
     const result = await handleLogin(email, password);
+    console.log('login result', result);
 
     if (result.success) {
-      showAlert('success', 'Logged in successfully!', 1);
-      navigate('/'); // Redirect on success
+      showAlert('success', 'Logged in successfully!', 2);
+
+      if (result.userProfile?.data.users?.role === 'admin') navigate('/admin');
+      else navigate('/');
     } else {
       setFormError(result.error || 'Login failed. Please try again.');
       showAlert('error', result.error || 'Login failed. Please try again.', 1);

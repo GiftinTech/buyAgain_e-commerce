@@ -322,6 +322,31 @@ const createOrder = catchAsync(
 
 const getAllOrders = factory.getAll<IOrder>(Order, 'orders');
 
+// GET user orders
+const getMyOrders = catchAsync(
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const userId = req.user.id;
+    const orders = await Order.find({ user: userId }).populate('orderItems');
+
+    if (!req.user || !userId) {
+      console.log('Request from unauthenticated user. Returning empty orders.');
+    }
+
+    if (!orders) {
+      console.log(
+        `No orders document found for authenticated user ${userId}. Returning empty orders.`,
+      );
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        orders,
+      },
+    });
+  },
+);
+
 const getOneOrder = factory.getOne<IOrder>(Order, 'order');
 
 const updateOrder = factory.updateOne<IOrder>(Order, 'order');
@@ -362,6 +387,6 @@ export default {
   deleteOrder,
   getCheckoutSession,
   webhookCheckout,
+  getMyOrders,
   // alerts,
-  // getMyOrders,
 };

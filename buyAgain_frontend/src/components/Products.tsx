@@ -1,49 +1,49 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ArrowLeft, ShoppingCart, Star, Tag } from 'lucide-react';
-import type { IProduct } from '../context/ShoppingContext';
-import useCart from '../hooks/useShopping';
+import type { IProduct, IProductResponse } from '../context/CartContext';
+import useCart from '../hooks/useCart';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
 import { useAlert } from '../hooks/useAlert';
 
 const ProductListing: React.FC = () => {
   const { showAlert } = useAlert();
-  const { handleFetchProduct, handleAddToCart, cartItems } = useCart();
+  const {
+    handleFetchProduct,
+    productList,
+    productError,
+    productLoading,
+    handleAddToCart,
+    cartItems,
+    onPaymentSuccess,
+  } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
-
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleNavigateToProductDetails = (getCurrentProductId: string) => {
     if (!getCurrentProductId) return;
     navigate(`/product-details/${getCurrentProductId}`);
   };
 
+  let products: IProductResponse | null = productList;
+
   // Memoize fetchProduct outside of useEffect
   const fetchProduct = useCallback(
     async (q: string | null) => {
       try {
-        setLoading(true);
-        setError('');
         const result = await handleFetchProduct(q || '');
         if (result.success && result.products) {
-          setProducts(result.products);
+          products = result.products;
+          console.log('search', products);
         } else {
-          setError(result.message || 'Failed to load products.');
-          setProducts([]);
+          products = productList;
         }
       } catch (err) {
         console.error('Error in fetchProducts:', err);
-        setError('An unexpected error occurred while fetching products.');
-        setProducts([]);
-      } finally {
-        setLoading(false);
       }
     },
-    [handleFetchProduct], // Make sure handleFetchProduct is stable or memoized
+    [handleFetchProduct],
   );
 
   // UseEffect with stable dependencies
@@ -92,9 +92,11 @@ const ProductListing: React.FC = () => {
     const params = new URLSearchParams(location.search);
 
     if (params.get('alert') === 'order') {
+      onPaymentSuccess();
+
       showAlert(
         'success',
-        'Your order was successful! Please check your email for a confirmation. If your order doesn’t show up here immediately, please come back later.',
+        'Your order was successful! Please check "My Order" for a confirmation. If your order doesn’t show up here immediately, please come back later.',
         5,
       );
 
@@ -105,8 +107,10 @@ const ProductListing: React.FC = () => {
     }
   }, [location, navigate, showAlert]);
 
+  if (location.pathname !== '/') return null;
+
   // Conditional Rendering for Loading, Error, and No Products
-  if (loading) {
+  if (productLoading) {
     return (
       <div className="lg:px-18 mx-auto my-10 grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-4 pt-10 lg:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] xl:px-20">
         {/* Render 4 skeletons */}
@@ -117,7 +121,7 @@ const ProductListing: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (productError) {
     return (
       <div className="flex h-[60vh] items-center justify-center py-8 font-semibold text-red-600">
         Failed to fetch products. Please try again later...
@@ -125,7 +129,11 @@ const ProductListing: React.FC = () => {
     );
   }
 
-  if (products.length === 0) {
+  if (!products) {
+    return;
+  }
+
+  if (products.products.length === 0) {
     return (
       <>
         <button
@@ -144,7 +152,7 @@ const ProductListing: React.FC = () => {
 
   return (
     <div className="lg:px-18 mx-auto my-10 grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 px-4 pt-10 lg:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] xl:px-20">
-      {products.map((product: IProduct) => (
+      {products.products.map((product: IProduct) => (
         <article
           key={product.id}
           className="relative flex min-h-[400px] cursor-pointer flex-col overflow-hidden rounded-lg shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
@@ -170,7 +178,11 @@ const ProductListing: React.FC = () => {
             </h2>
             <div className="mt-auto flex w-full items-center justify-between">
               <p className="mt-auto flex items-center gap-1 text-xl font-bold text-teal-700">
-                <Tag size={18} />₦{product.price.toFixed(2)}
+                <Tag size={18} />₦
+                {product.price.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
               {/* Ratings Display */}
               {/* Only show ratings if product.rating is a number */}

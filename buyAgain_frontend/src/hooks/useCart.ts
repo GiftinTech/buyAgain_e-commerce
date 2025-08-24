@@ -1,13 +1,13 @@
 import { createContext, useContext } from 'react';
-import type { ShopContextType } from '../context/ShoppingContext';
+import type { CartContextType } from '../context/CartContext';
 
 //create the context
-export const ShoppingCartContext = createContext<ShopContextType | undefined>(
+export const CartContext = createContext<CartContextType | undefined>(
   undefined,
 );
 
 const useCart = () => {
-  const context = useContext(ShoppingCartContext);
+  const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error('useCart must be used within an CartProvider');
   }

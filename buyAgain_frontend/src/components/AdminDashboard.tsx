@@ -11,16 +11,15 @@ import DashboardStats from './ui/dashboard/Stats';
 import SalesChart from './ui/dashboard/SalesChart';
 import UserManagement from './ui/dashboard/UserManagement';
 import ProductManagement from './ui/dashboard/ProductManagement';
-import useCart from '../hooks/useShopping';
+import useCart from '../hooks/useCart';
 
 import useAuth from '../hooks/useAuth';
-import OrderHistory from './ui/dashboard/OrderHistory';
+import OrderManagement from './ui/dashboard/OrderManagement';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
 
-  const { setLoading, setError, setProductList, handleFetchProduct } =
-    useCart();
+  const { handleFetchProduct } = useCart();
 
   const logout = Logout();
   const { theme, toggleTheme } = useTheme();
@@ -33,27 +32,18 @@ const AdminDashboard: React.FC = () => {
   // get login user profile
   const userProfile = user?.data.users;
 
-  const fetchProduct = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const result = await handleFetchProduct();
-
-      if (result.success && result.products) {
-        setProductList(result.products);
-      } else {
-        setError(result.message || 'Failed to load products.');
-        setProductList([]); // Ensure products is empty on error
+  const fetchProduct = useCallback(
+    async (searchTerm?: string) => {
+      try {
+        await handleFetchProduct(searchTerm);
+        // handleFetchProduct already sets productList in context
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        // context already handles errors via productError
       }
-    } catch (err: unknown) {
-      console.error('Error in fetchProductsData:', err);
-      setError('An unexpected error occurred while fetching products.');
-      setProductList([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleFetchProduct, setError, setLoading, setProductList]);
-
+    },
+    [handleFetchProduct],
+  );
   useEffect(() => {
     fetchProduct();
   }, []);
@@ -119,7 +109,7 @@ const AdminDashboard: React.FC = () => {
           {activeTab === 'users' && <UserManagement />}
 
           {activeTab === 'products' && <ProductManagement />}
-          {activeTab === 'orders' && <OrderHistory />}
+          {activeTab === 'orders' && <OrderManagement />}
         </main>
       </div>
     </div>

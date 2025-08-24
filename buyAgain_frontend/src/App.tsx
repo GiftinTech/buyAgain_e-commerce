@@ -17,6 +17,7 @@ import Unauthorized from './pages/Unauthorized';
 import AlertContainer from './utils/alert';
 import MePage from './components/UserAccount';
 import AccountSettings from './components/ui/dashboard/user/AccountSettings';
+import MyOrders from './components/ui/dashboard/user/MyOrders';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -41,9 +42,14 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route element={<ProtectedRoute user={user} requiredRole="user" />}>
+          <Route
+            element={
+              <ProtectedRoute user={user} requiredRoles={['user', 'admin']} />
+            }
+          >
             <Route path="/me" element={<MePage />} />
             <Route path="/me/settings" element={<AccountSettings />} />
+            <Route path="/me/orders" element={<MyOrders />} />
           </Route>
           {/* Unauthorized route */}
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -52,7 +58,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route element={<ProtectedRoute user={user} requiredRole="admin" />}>
+        <Route
+          element={<ProtectedRoute user={user} requiredRoles={['admin']} />}
+        >
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 

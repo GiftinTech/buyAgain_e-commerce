@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import useCart from '../hooks/useShopping';
+import useCart from '../hooks/useCart';
 import getAuthToken from '../utils/getAuthToken';
 import useAuth from '../hooks/useAuth';
 

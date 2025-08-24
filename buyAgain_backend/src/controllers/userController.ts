@@ -17,6 +17,7 @@ const getAllUsers = factory.getAll<IUser>(User, 'users');
 const getUser = factory.getOne<IUser>(User, 'users');
 
 const addUser = factory.createOne<IUser>(User, 'user');
+const updateUser = factory.updateOne<IUser>(User, 'user');
 
 const filterObj = (obj: any, ...allowedFields: string[]) => {
   if (!obj || typeof obj !== 'object') return {}; // prevent crash
@@ -27,7 +28,7 @@ const filterObj = (obj: any, ...allowedFields: string[]) => {
   return newObj;
 };
 
-const updateUser = catchAsync(async (req: CustomRequest, res, next) => {
+const updateMe = catchAsync(async (req: CustomRequest, res, next) => {
   // check if the body isnt empty
   if (!req.body) req.body = {};
 
@@ -63,5 +64,6 @@ export default {
   getUser,
   addUser,
   getMe,
+  updateMe,
   updateUser,
 };

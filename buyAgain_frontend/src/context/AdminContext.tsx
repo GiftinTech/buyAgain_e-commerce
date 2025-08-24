@@ -1,23 +1,34 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AdminContext } from '../hooks/useAdmin';
-import type { IProduct } from './ShoppingContext';
+import type { IProduct } from './CartContext';
 import useFetch from '../hooks/useFetch';
 import { useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+
+export type OrderStatus =
+  | 'pending'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'failed';
 
 export interface IUser {
   _id: string;
   name: string;
   email: string;
   role: 'user' | 'admin' | 'seller';
-  test_role: string;
+  newRole: string;
   active: boolean;
   photo: string;
 }
 
-export interface User {
-  users: IUser[];
+export interface AdminCreateUser {
+  success: boolean;
+  users: Partial<IUser[]>;
+  user: Pick<IUser, 'name' | 'email' | '_id' | 'newRole'>;
+  password?: string;
+  passwordConfirm?: string;
 }
 
 export interface Product extends IProduct {
@@ -35,9 +46,10 @@ interface ShippingAddress {
 }
 
 interface OrderItem {
-  product: string;
+  product: string | Partial<IProduct>;
   quantity: number;
   priceAtTimeOfOrder: number;
+  thumbnail: string;
 }
 
 export interface IOrder {
@@ -51,7 +63,8 @@ export interface IOrder {
   orderItems: OrderItem[];
 }
 
-interface Order {
+interface OrdersResponse {
+  success: boolean;
   orders: IOrder[];
 }
 
@@ -60,29 +73,43 @@ interface AdminContextType {
   loading: boolean;
   error: string | null;
   orderError: string | null;
-  users: User | null;
+  myOrderError: string | null;
+  users: AdminCreateUser | null;
   products: IProduct[] | null;
-  orders: Order | null;
+  orders: OrdersResponse | null;
+  myOrders: IOrder | null;
 
   // Functions to trigger CRUD operations
   handleFetchUsers: () => Promise<{
     success: boolean;
     message?: string;
-    users?: User | null;
+    users?: AdminCreateUser | null;
   }>;
 
   handleFetchOrders: () => Promise<{
     success: boolean;
     message?: string;
-    orders?: Order | null;
+    orders?: OrdersResponse | null;
   }>;
-  handleCreateUser: () => Promise<void>;
-  handleUpdateUser: () => Promise<void>;
+
+  handleFetchMyOrders: () => Promise<{
+    success: boolean;
+    message?: string;
+    myOrders?: IOrder | null;
+  }>;
+  handleCreateUser: (user: Partial<AdminCreateUser>) => Promise<void>;
+  handleUpdateUser: (user: AdminCreateUser) => Promise<void>;
   handleDeleteUser: () => Promise<void>;
 
   handleCreateProduct: (product: Omit<IProduct, 'id'>) => Promise<void>;
   handleUpdateProduct: (product: IProduct) => Promise<void>;
   handleDeleteProduct: (id: string) => Promise<void>;
+
+  handleUpdateOrder: (
+    order: IOrder,
+    orderUpdates: Partial<IOrder>,
+  ) => Promise<void>;
+  handleDeleteOrder: (id: string) => Promise<void>;
 }
 
 interface AdminProviderProps {
@@ -93,8 +120,10 @@ const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 // provide the state
 const AdminProvider = ({ children }: AdminProviderProps) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const location = useLocation();
+
+  const userProfile = user?.data.users;
 
   const authOptions = useMemo(() => {
     return {
@@ -105,6 +134,7 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     };
   }, [token]);
 
+  // fetch products from DB
   const {
     data: fetchedProducts,
     loading: productsLoading,
@@ -113,23 +143,43 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
   } = useFetch<IProduct[]>('/products');
 
   // fetch users from DB
+  // fetch users only when user is admin
   const {
     data: fetchedUsers,
     loading: usersLoading,
     error: usersError,
     refetch: refetchUsers,
-  } = useFetch<User | null>('/users', authOptions);
+  } = useFetch<AdminCreateUser>(
+    '/users',
+    authOptions,
+    location.pathname === '/' || location.pathname === '/admin',
+  );
 
-  // fetch orders from DB
+  // fetch all orders only on admin dashboard
   const {
     data: fetchedOrders,
     loading: ordersLoading,
     error: ordersError,
-  } = useFetch<Order>('/orders', authOptions);
-  console.log('Orders Data:', fetchedOrders);
+    refetch: refetchOrders,
+  } = useFetch<OrdersResponse>(
+    '/orders',
+    authOptions,
+    location.pathname === '/admin',
+  );
+
+  // fetch *my orders* only when logged in & on my orders page
+  const {
+    data: fetchedMyOrders,
+    loading: myOrdersLoading,
+    error: myOrdersError,
+  } = useFetch<IOrder>(
+    '/orders/my-orders',
+    authOptions,
+    !!userProfile && location.pathname === '/my-orders', // <-- enabled only when needed
+  );
 
   // Local state to hold users
-  const [users, setUsers] = useState<User | null>(null);
+  const [users, setUsers] = useState<AdminCreateUser | null>(null);
 
   // Trigger refetch of users only when route is /admin
   useEffect(() => {
@@ -148,11 +198,12 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     }
   }, [fetchedUsers]);
 
+  // User management
   // This function now just triggers a refetch from the hook
   const handleFetchUsers = async (): Promise<{
     success: boolean;
     message?: string;
-    users?: User | null;
+    users?: AdminCreateUser | null;
   }> => {
     await refetchUsers();
     if (usersError) {
@@ -165,31 +216,48 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     };
   };
 
-  const handleFetchOrders = async (): Promise<{
-    success: boolean;
-    message?: string;
-    orders?: Order | null;
-  }> => {
-    if (ordersError) {
-      return { success: false, message: ordersError };
+  // Placeholder functions for CRUD operations
+  const handleCreateUser = async (user: Partial<AdminCreateUser>) => {
+    try {
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        ...authOptions,
+        body: JSON.stringify(user),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to create user.');
+      }
+
+      await refetchUsers();
+    } catch (error) {
+      console.error('Create user error:', error);
     }
-    return {
-      success: true,
-      message: 'Orders fetched successfully.',
-      orders: fetchedOrders,
-    };
   };
 
-  // Placeholder functions for CRUD operations
-  const handleCreateUser = async () => {
-    /* Logic here */
+  const handleUpdateUser = async (user: AdminCreateUser) => {
+    try {
+      const res = await fetch(
+        `${BUYAGAIN_API_BASE_URL}/users/${user.user._id}`,
+        {
+          method: 'PATCH',
+          ...authOptions,
+          body: JSON.stringify(user),
+        },
+      );
+      if (!res.ok) throw new Error('Failed to update user.');
+      // Refetch the list to update the UI
+      await refetchUsers();
+    } catch (error) {
+      console.error('Update user error:', error);
+    }
   };
-  const handleUpdateUser = async () => {
-    /* Logic here */
-  };
+
   const handleDeleteUser = async () => {
     /* Logic here */
   };
+
+  // Product management
   const handleCreateProduct = async (product: Omit<Product, 'id'>) => {
     try {
       const res = await fetch(`${BUYAGAIN_API_BASE_URL}/products/addProduct`, {
@@ -240,22 +308,93 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     }
   };
 
+  // Order Management
+  const handleFetchOrders = async (): Promise<{
+    success: boolean;
+    message?: string;
+    orders?: OrdersResponse | null;
+  }> => {
+    if (ordersError) {
+      return { success: false, message: ordersError };
+    }
+
+    return {
+      success: true,
+      message: 'Orders fetched successfully.',
+      orders: fetchedOrders,
+    }; // error came because I change useFetch and how I fetch data from db. II don want all fetches to be call except i'm on the page that needs it
+  };
+
+  const handleFetchMyOrders = async (): Promise<{
+    success: boolean;
+    message?: string;
+    myOrders?: IOrder | null;
+  }> => {
+    if (myOrdersError) {
+      return { success: false, message: ordersError! };
+    }
+    return {
+      success: true,
+      message: 'Orders fetched successfully.',
+      myOrders: fetchedMyOrders,
+    };
+  };
+
+  const handleUpdateOrder = async (
+    order: IOrder,
+    orderUpdates: Partial<IOrder>,
+  ) => {
+    try {
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/orders/${order._id}`, {
+        method: 'PATCH',
+        ...authOptions,
+        body: JSON.stringify(orderUpdates),
+      });
+      if (!res.ok) throw new Error('Failed to update order status.');
+      // Refetch the list to update the UI
+      await refetchOrders();
+    } catch (error) {
+      console.error('Update order error:', error);
+    }
+  };
+
+  const handleDeleteOrder = async (id: string) => {
+    try {
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/orders/${id}`, {
+        method: 'DELETE',
+        ...authOptions,
+      });
+      if (!res.ok) throw new Error('Failed to delete order.');
+      // Refetch the list to update the UI
+      await refetchOrders();
+    } catch (error) {
+      console.error('Delete order error:', error);
+    }
+  };
+
   const contextValue: AdminContextType = {
-    loading: productsLoading || usersLoading || ordersLoading,
+    loading:
+      productsLoading || usersLoading || ordersLoading || myOrdersLoading,
     error: productsError || usersError,
     users,
     products: fetchedProducts,
     orders: fetchedOrders,
     orderError: ordersError,
+    myOrders: fetchedMyOrders,
+    myOrderError: myOrdersError,
 
     handleFetchUsers,
     handleFetchOrders,
+    handleFetchMyOrders,
+
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
     handleCreateProduct,
     handleUpdateProduct,
     handleDeleteProduct,
+    handleUpdateOrder,
+    handleDeleteOrder,
   };
 
   return (
