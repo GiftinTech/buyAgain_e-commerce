@@ -8,6 +8,7 @@ import CartProvider from './context/CartContext';
 import AdminProvider from './context/AdminContext';
 import { AlertProvider } from './context/AlertContext';
 import ReviewProvider from './context/ReviewContext';
+import UserProvider from './context/UserContext';
 
 const queryClient = new QueryClient();
 
@@ -19,7 +20,9 @@ createRoot(document.getElementById('root')!).render(
           <ReviewProvider>
             <CartProvider>
               <AdminProvider>
-                <App />
+                <UserProvider>
+                  <App />
+                </UserProvider>
               </AdminProvider>
             </CartProvider>
           </ReviewProvider>

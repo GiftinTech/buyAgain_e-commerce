@@ -11,7 +11,7 @@ const Logout = () => {
     const { success, error } = await handleLogout();
 
     if (success) {
-      navigate('/');
+      navigate('/login');
       showAlert('success', 'You have been logged out successfully.');
     }
     if (error) {

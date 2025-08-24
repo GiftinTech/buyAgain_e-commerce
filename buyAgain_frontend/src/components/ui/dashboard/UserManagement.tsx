@@ -198,7 +198,7 @@ const UserManagement = () => {
               paginatedUsers.map((user, i: number) => (
                 <tr
                   key={user?._id}
-                  className='dark:hover:bg-gray-700" hover:bg-gray-50'
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-800 dark:text-gray-200">
                     {(userPage - 1) * PAGE_SIZE + i + 1}

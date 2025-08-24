@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import getAuthToken from '../utils/getAuthToken';
+import { AuthContext } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 // Base URL for buyAgain buyAgain_backend API
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
@@ -25,7 +27,7 @@ export interface Data {
 }
 
 // Shape of the AuthContext value
-interface AuthContextType {
+export interface AuthContextType {
   user: Data | null;
   token: string | null;
   loadingAuth: boolean;
@@ -55,13 +57,12 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; message?: string }>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<Data | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
@@ -131,26 +132,24 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // On component mount, check for existing JWT token in localStorage
-    const loadUserFromToken = async () => {
-      const accessToken = localStorage.getItem('access_token');
-      if (accessToken) {
-        const decodedToken = decodeJwt(accessToken);
-        if (decodedToken) {
-          // Fetch full user profile using the token
-          await fetchUserProfile(accessToken);
+    try {
+      const storedToken = localStorage.getItem('access_token');
+      console.log('Token on load:', storedToken);
+      if (storedToken) {
+        const isValid = decodeJwt(storedToken);
+        if (isValid) {
+          fetchUserProfile(storedToken);
+          setToken(storedToken);
         } else {
-          // Token invalid or expired, clear it
           localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
           setUser(null);
-          console.log('AuthContext: Invalid token, user logged out.');
         }
       }
-      setLoadingAuth(false);
-      //console.log('AuthContext: Initial auth loading complete.');
-    };
+    } catch (err) {
+      console.error('Error accessing localStorage:', err);
+    }
 
-    loadUserFromToken();
+    setLoadingAuth(false);
   }, []);
 
   const handleSignup = async (
@@ -295,6 +294,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
       localStorage.removeItem('access_token');
       setUser(null);
+      navigate('/login');
       return { success: true };
     } catch (error: any) {
       console.error('Logout error:', error);
@@ -414,4 +414,3 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 // Remove useAuth from this file to fix Fast Refresh error.
 // Export only the AuthProvider component from this file.
 export default AuthProvider;
-export { AuthContext };

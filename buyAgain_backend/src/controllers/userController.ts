@@ -32,20 +32,44 @@ const updateMe = catchAsync(async (req: CustomRequest, res, next) => {
   // check if the body isnt empty
   if (!req.body) req.body = {};
 
-  // Create error if user POSTs password data
-  if (req.body.password || req.body.passwordConfirm) {
+  // allow password data only if an email is also being updated.
+  if (req.body.password && !req.body.email) {
     return next(
       new AppError(
-        'You cannot update your password, use /forgot-password to reset it.',
+        'Password cannot be updated from this route unless the email is also being changed.',
         400,
       ),
     );
   }
 
-  // 2) Filtered out unwanted fields names that are not allowed to be updated
+  // Validate the password if the email is being changed
+  if (req.body.email) {
+    const user = await User.findById(req.user?.id).select('+password');
+
+    if (!req.body.password) {
+      return next(new AppError('Password is required to change email.', 400));
+    }
+
+    const isPasswordCorrect = await user.correctPassword(
+      req.body.password,
+      user.password,
+    );
+    if (!isPasswordCorrect) {
+      return next(new AppError('Incorrect password.', 401));
+    }
+    // Remove the password from the body so it's not accidentally saved
+    delete req.body.password;
+  }
+
+  // Filtered out unwanted fields names that are not allowed to be updated
   const filteredBody = filterObj(req.body, 'name', 'email', 'photo');
 
-  // 3) Update user document
+  // ensure at least one valid field is being sent
+  if (Object.keys(filteredBody).length === 0) {
+    return next(new AppError('Please provide data to update.', 400));
+  }
+
+  // Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user?.id, filteredBody, {
     new: true,
     runValidators: true,

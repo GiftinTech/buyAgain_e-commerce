@@ -13,6 +13,7 @@ import User, { IUser } from '../models/userModel';
 import catchAsync from '../utils/catchAsync';
 import Product, { IProduct } from '../models/productModel';
 import AppError from '../utils/appError';
+import mongoose from 'mongoose';
 
 // Frontend URL
 const frontend_url = process.env.FRONTEND_URL;
@@ -349,34 +350,36 @@ const getMyOrders = catchAsync(
 
 const getOneOrder = factory.getOne<IOrder>(Order, 'order');
 
-const updateOrder = factory.updateOne<IOrder>(Order, 'order');
+const updateOrder = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const orderId = req.params.orderId;
+    const updateData = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ message: 'Invalid order ID' });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedOrder) {
+      // Throw error to be caught by catchAsync
+      throw new AppError('Order not found', 404);
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Order updated successfully',
+      data: {
+        order: updatedOrder,
+      },
+    });
+  },
+);
 
 const deleteOrder = factory.deleteOne<IOrder>(Order, 'order');
-
-// after successful payment
-// const alerts = (req: Request, res: Response, next: NextFunction) => {
-//   const { alert } = req.query;
-//   if (alert === 'booking')
-//     res.alert =
-//       "Your booking was successful! Please check your email for a confirmation. If your booking doesn't show up here immediatly, please come back later.";
-//   next();
-// };
-
-// const getMyOrders = catchAsync(async (req: CustomRequest, res: Response, next: NextFunction) => {
-//   // Find all orders
-//   const order = await Order.find({ user: req.user.id })
-//   // Find product with the returned IDs
-//   const { orderItems } = order;
-
-//   const productIDs = orderItems.map((item) => item.product);
-//   const products = await Product.find({ _id: { $in: productIDs } });
-
-//   res.status(200).json({
-//     status: 'success',
-//     title: 'My Products',
-//     products,
-//   });
-//});
 
 export default {
   setUserFilter,
@@ -388,5 +391,4 @@ export default {
   getCheckoutSession,
   webhookCheckout,
   getMyOrders,
-  // alerts,
 };

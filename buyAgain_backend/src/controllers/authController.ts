@@ -358,7 +358,17 @@ const updatePassword = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<any> => {
-    // i. get user from collection
+    // 1. Check if the request body and its properties exist
+    const { passwordCurrent, password, passwordConfirm } = req.body || {};
+
+    // 2. Validate all required fields are present
+    if (!passwordCurrent || !password || !passwordConfirm) {
+      return next(
+        new AppError('Please provide all required password fields.', 400),
+      );
+    }
+
+    // i. Get user from collection
     const user = await User.findById(req.user?.id).select('+password');
 
     // Check if user was found
@@ -366,21 +376,23 @@ const updatePassword = catchAsync(
       return next(new AppError('User not found', 404));
     }
 
-    // ii. check if POSTED current password is correct
+    // ii. Check if POSTED current password is correct
     const isCorrect = await user.correctPassword(
-      req.body.passwordCurrent,
+      passwordCurrent,
       user.password,
     );
 
-    if (!isCorrect)
+    if (!isCorrect) {
       return next(new AppError('Your current password is incorrect', 401));
+    }
 
-    // iii. if pwd correct, update pwd
-    user.password = req.body.password;
-    user.passwordConfirm = req.body.passwordConfirm;
-    await user.save(); // triggers pre-save middleware like hashing
+    // iii. If pwd correct, update pwd
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
 
-    // iv. log user in, send JWT
+    await user.save();
+
+    // iv. Log user in, send JWT
     createSendToken(user, 200, req, res);
   },
 );

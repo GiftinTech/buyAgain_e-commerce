@@ -281,7 +281,7 @@ const ProductManagement = () => {
             ) : (
               <tr
                 key={product.id}
-                className='dark:hover:bg-gray-700" hover:bg-gray-50'
+                className="hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <td className="px-4 py-2 text-sm dark:text-gray-200">
                   {(productPage - 1) * PAGE_SIZE + i + 1}

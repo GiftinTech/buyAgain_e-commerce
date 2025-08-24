@@ -101,6 +101,8 @@ interface AdminContextType {
   handleUpdateUser: (user: AdminCreateUser) => Promise<void>;
   handleDeleteUser: () => Promise<void>;
 
+  refetchUsers: () => Promise<void>;
+
   handleCreateProduct: (product: Omit<IProduct, 'id'>) => Promise<void>;
   handleUpdateProduct: (product: IProduct) => Promise<void>;
   handleDeleteProduct: (id: string) => Promise<void>;
@@ -279,7 +281,7 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
   const handleUpdateProduct = async (product: Product) => {
     try {
       const res = await fetch(
-        `${BUYAGAIN_API_BASE_URL}/products/${product.id}`,
+        `${BUYAGAIN_API_BASE_URL}/products/updateProduct/${product.id}`,
         {
           method: 'PATCH',
           ...authOptions,
@@ -382,6 +384,8 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     orderError: ordersError,
     myOrders: fetchedMyOrders,
     myOrderError: myOrdersError,
+
+    refetchUsers,
 
     handleFetchUsers,
     handleFetchOrders,
