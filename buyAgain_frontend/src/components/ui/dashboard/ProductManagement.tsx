@@ -296,7 +296,11 @@ const ProductManagement = () => {
                     {product.name}
                   </td>
                   <td className="px-4 py-2 text-sm dark:text-gray-200">
-                    ₦{product.price}
+                    ₦
+                    {product.price.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                   <td className="px-4 py-2 text-sm dark:text-gray-200">
                     {product.stock}
@@ -333,7 +337,7 @@ const ProductManagement = () => {
         <button
           onClick={() => setProductPage((p) => Math.max(p - 1, 1))}
           disabled={productPage === 1}
-          className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+          className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
         >
           Previous
         </button>
@@ -354,7 +358,7 @@ const ProductManagement = () => {
               disabled={
                 productPage >= Math.ceil(filteredProducts.length / PAGE_SIZE)
               }
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
             >
               Next
             </button>

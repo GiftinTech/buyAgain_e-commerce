@@ -8,6 +8,13 @@ const DashboardStats: React.FC = () => {
   const { productList } = useCart();
   const usersArr = users?.users || [];
 
+  const ordersTotal = orders?.orders.reduce((total, order) => {
+    const orderTotal = order.orderItems.reduce((sum, item) => {
+      return sum + item.priceAtTimeOfOrder;
+    }, 0);
+    return total + orderTotal;
+  }, 0);
+
   return (
     <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {/* Orders Card */}
@@ -46,7 +53,11 @@ const DashboardStats: React.FC = () => {
         <div>
           <p className="text-gray-500 dark:text-gray-300">Revenue</p>
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-            ₦54,321
+            ₦
+            {ordersTotal?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </h2>
         </div>
       </div>

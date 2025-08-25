@@ -18,10 +18,14 @@ const MyOrders: React.FC = () => {
   const navigate = useNavigate();
 
   if (loading)
-    return <p className="mt-10 h-[60vh] text-center">Loading orders...</p>;
+    return (
+      <p className="mt-10 flex h-[60vh] items-center justify-center">
+        Loading orders...
+      </p>
+    );
   if (myOrderError)
     return (
-      <p className="mt-10 h-[60vh] text-center text-red-500">
+      <p className="mt-10 flex h-[60vh] items-center justify-center text-red-500">
         Error loading orders
       </p>
     );

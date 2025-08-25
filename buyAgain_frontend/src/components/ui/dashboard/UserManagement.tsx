@@ -257,7 +257,7 @@ const UserManagement = () => {
             <button
               onClick={() => setUserPage((prev) => Math.max(prev - 1, 1))}
               disabled={userPage === 1}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
             >
               Previous
             </button>
@@ -269,7 +269,7 @@ const UserManagement = () => {
                 setUserPage((prev) => (prev < pageCount ? prev + 1 : prev))
               }
               disabled={userPage >= pageCount}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
             >
               Next
             </button>

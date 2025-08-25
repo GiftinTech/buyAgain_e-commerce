@@ -18,7 +18,6 @@ import OrderManagement from './ui/dashboard/OrderManagement';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
-
   const { handleFetchProduct } = useCart();
 
   const logout = Logout();
@@ -107,7 +106,6 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {activeTab === 'users' && <UserManagement />}
-
           {activeTab === 'products' && <ProductManagement />}
           {activeTab === 'orders' && <OrderManagement />}
         </main>

@@ -167,7 +167,11 @@ const OrderManagement: React.FC = () => {
                   </td>
                   {/* Total Price */}
                   <td className="whitespace-nowrap border-b border-gray-200 px-6 py-4 text-sm text-gray-800 dark:border-gray-700 dark:text-gray-200">
-                    ₦{order.totalPrice}
+                    ₦
+                    {order.totalPrice.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                   {/* Status with conditional editing */}
                   <td className="border-b border-gray-200 px-6 py-4 text-sm text-gray-800 dark:border-gray-700 dark:text-gray-200">
@@ -230,7 +234,7 @@ const OrderManagement: React.FC = () => {
             <button
               onClick={() => setOrderPage((prev) => Math.max(prev - 1, 1))}
               disabled={orderPage === 1}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
             >
               Previous
             </button>
@@ -242,7 +246,7 @@ const OrderManagement: React.FC = () => {
                 setOrderPage((prev) => Math.min(prev + 1, pageCount))
               }
               disabled={orderPage === pageCount}
-              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600"
+              className="rounded border border-gray-300 px-3 py-1 hover:bg-pink-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-pink-900"
             >
               Next
             </button>
