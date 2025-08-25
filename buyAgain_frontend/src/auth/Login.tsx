@@ -5,6 +5,8 @@ import { useAlert } from '../hooks/useAlert'; // Assuming useAlert is still need
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'; // Import Lucide React icons for password toggle
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const { handleLogin, loadingAuth } = useAuth();
   const { showAlert } = useAlert();
   const [email, setEmail] = useState('');
@@ -17,8 +19,6 @@ const Login = () => {
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
-
-  const navigate = useNavigate();
 
   // Email validation logic
   useEffect(() => {

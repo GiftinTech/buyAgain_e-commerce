@@ -115,8 +115,16 @@ const ProductListing: React.FC = () => {
 
   if (productError) {
     return (
-      <div className="flex h-[60vh] items-center justify-center py-8 font-semibold text-red-600">
-        Failed to fetch products. Please try again later...
+      <div className="flex h-[60vh] flex-col items-center justify-center py-8 font-semibold text-red-600">
+        <p> Failed to fetch products. Please try again later...</p>
+        <button
+          onClick={() =>
+            fetchProduct(new URLSearchParams(location.search).get('category'))
+          }
+          className="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
       </div>
     );
   }

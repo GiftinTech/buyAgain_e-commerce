@@ -1,8 +1,10 @@
 // Cart.tsx
 import React from 'react';
-import { Trash2, Plus, Minus } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useCart from '../hooks/useCart';
+import useAuth from '../hooks/useAuth';
+import { useAlert } from '../hooks/useAlert';
 
 const Cart: React.FC = () => {
   const {
@@ -12,11 +14,28 @@ const Cart: React.FC = () => {
     handleIncreaseQuantity,
     handleDecreaseQuantity,
   } = useCart();
-
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showAlert } = useAlert();
+
+  const handleCheckout = () => {
+    if (user) {
+      navigate('/checkout');
+    } else {
+      showAlert('info', 'Please login to checkout', 2);
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl py-8 pr-4 max-md:max-w-xl sm:pr-0">
+      <button
+        className="my-5 -ml-6 flex flex-row gap-2 pl-8 hover:font-semibold"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft />
+        Back
+      </button>
       <h1 className="mb-4 text-center text-2xl font-bold text-white">
         Your Cart
       </h1>
@@ -130,7 +149,7 @@ const Cart: React.FC = () => {
           <button
             disabled={!(cartItems?.length > 0)}
             className="bg-black px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50"
-            onClick={() => navigate('/checkout')}
+            onClick={handleCheckout}
           >
             Checkout
           </button>
