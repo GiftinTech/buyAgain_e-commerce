@@ -1,29 +1,30 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import type { Data } from '../context/AuthContext';
+import useAuth from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
-  user: Data | null;
-  requiredRoles?: string[]; // Changed to array of strings
+  requiredRoles?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  user,
-  requiredRoles,
-}) => {
-  if (!user) {
-    // Not logged in
-    return <Navigate to="/login" replace />;
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles }) => {
+  const { user, loadingAuth } = useAuth();
+
+  if (loadingAuth) {
+    return <div className="flex items-center justify-center">Loading...</div>;
   }
 
-  const userRole = user?.data?.users?.role ?? '';
+  // Once loading is complete, check if the user is authenticated.
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
 
+  // Check if the user has one of the required roles.
+  const userRole = user?.data?.users?.role ?? '';
   if (requiredRoles && !requiredRoles.includes(userRole)) {
-    // User doesn't have one of the required roles
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // User is authenticated and has one of the required roles
+  // If all checks pass, render the child components.
   return <Outlet />;
 };
 

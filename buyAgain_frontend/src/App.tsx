@@ -11,7 +11,6 @@ import AdminDashboard from './components/AdminDashboard';
 import ProductDetailsPage from './components/ProductDetails';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
-import useAuth from './hooks/useAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './pages/Unauthorized';
 import AlertContainer from './utils/alert';
@@ -31,8 +30,6 @@ const ScrollToTop = () => {
 };
 
 function App() {
-  const { user } = useAuth();
-
   return (
     <>
       <ScrollToTop />
@@ -43,11 +40,7 @@ function App() {
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route
-            element={
-              <ProtectedRoute user={user} requiredRoles={['user', 'admin']} />
-            }
-          >
+          <Route element={<ProtectedRoute requiredRoles={['user', 'admin']} />}>
             <Route path="/me" element={<MePage />} />
             <Route path="/me/settings" element={<AccountSettings />} />
             <Route path="/me/orders" element={<MyOrders />} />
@@ -60,9 +53,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route
-          element={<ProtectedRoute user={user} requiredRoles={['admin']} />}
-        >
+        <Route element={<ProtectedRoute requiredRoles={['admin']} />}>
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 
