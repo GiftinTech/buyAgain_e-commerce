@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useAlert } from '../hooks/useAlert';
-import { CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react';
 
 const Signup = () => {
   const { handleSignup, loadingAuth } = useAuth();
@@ -135,6 +135,13 @@ const Signup = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-4 dark:bg-black">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-900">
+        <button
+          className="my-5 -ml-6 flex flex-row gap-2 pl-8 hover:font-semibold"
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft />
+          Home
+        </button>
         <div className="mb-6">
           <h1 className="text-center text-2xl font-bold text-gray-800 dark:text-white">
             Sign Up to Shop

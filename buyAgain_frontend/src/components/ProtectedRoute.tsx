@@ -10,7 +10,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles }) => {
   const { user, loadingAuth } = useAuth();
 
   if (loadingAuth) {
-    return <div className="flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   // Once loading is complete, check if the user is authenticated.

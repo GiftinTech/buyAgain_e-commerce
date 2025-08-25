@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect } from 'react';
-import { ArrowLeft, ShoppingCart, Star, Tag } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Star, Tag } from 'lucide-react';
 import type { IProduct, IProductResponse } from '../context/CartContext';
 import useCart from '../hooks/useCart';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -147,25 +147,38 @@ const ProductListing: React.FC = () => {
       {products.products.map((product: IProduct) => (
         <article
           key={product.id}
-          className="relative flex min-h-[400px] cursor-pointer flex-col overflow-hidden rounded-lg shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg"
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.15)')
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)')
-          }
+          className="flex min-h-[400px] cursor-pointer flex-col overflow-hidden rounded-lg bg-white shadow-md transition-shadow duration-300 ease-in-out hover:shadow-lg dark:bg-gray-800"
           onClick={() => handleNavigateToProductDetails(product?.id)}
         >
-          {/* Product Image (Background) */}
-          <img
-            src={product.thumbnail}
-            alt={product.title}
-            className="absolute inset-0 z-0 h-full w-full rounded-lg object-cover"
-          />
-          <div className="absolute inset-0 z-10 rounded-lg"></div>{' '}
-          <div className="relative z-20 flex h-full flex-col p-4">
-            {' '}
-            <h2 className="mb-2 min-h-[3rem] text-center text-lg font-semibold">
+          {/* Product Image Section */}
+          <div className="relative h-56 w-full overflow-hidden">
+            <img
+              src={product.thumbnail}
+              alt={product.title}
+              className="h-full w-full object-contain transition-transform duration-300 ease-in-out hover:scale-110"
+            />
+
+            {/* Heart Icon for Wishlist */}
+            <div className="absolute right-2 top-2 z-30">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert('Wishlist feature coming soon');
+                  // wishlist logic
+                  // handleAddToWishlist(product.id);
+                }}
+                className="p-2 text-red-500 transition-colors hover:text-red-100 focus:outline-none"
+                aria-label="Add to Wishlist"
+                title="Add to Wishlist"
+              >
+                <Heart size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Product Details Section */}
+          <div className="flex flex-1 flex-col p-4">
+            <h2 className="mb-2 text-center text-lg font-semibold text-gray-900 dark:text-gray-100">
               {product.name}
             </h2>
             <div className="mt-auto flex w-full items-center justify-between">
@@ -176,8 +189,6 @@ const ProductListing: React.FC = () => {
                   maximumFractionDigits: 2,
                 })}
               </p>
-              {/* Ratings Display */}
-              {/* Only show ratings if product.rating is a number */}
               {typeof product.rating === 'number' &&
                 typeof product.ratingQuantity === 'number' && (
                   <div className="mb-2 flex items-center justify-center">
@@ -185,7 +196,7 @@ const ProductListing: React.FC = () => {
                       {renderStars(product.rating)}
                     </div>
                     <span className="ml-2 text-sm text-gray-500">
-                      ({product.ratingQuantity}){' '}
+                      ({product.ratingQuantity})
                     </span>
                   </div>
                 )}

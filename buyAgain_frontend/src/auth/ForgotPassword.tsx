@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import useAuth from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const ForgotPassword = () => {
   const { user, handleForgotPassword, loadingAuth } = useAuth();
@@ -77,6 +78,13 @@ const ForgotPassword = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-white dark:bg-black">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg dark:bg-gray-900">
+        <button
+          className="my-5 -ml-6 flex flex-row gap-2 pl-8 hover:font-semibold"
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft />
+          Home
+        </button>
         <h2 className="mb-3 text-center text-2xl font-bold text-black dark:text-white">
           Forgot Password
         </h2>
