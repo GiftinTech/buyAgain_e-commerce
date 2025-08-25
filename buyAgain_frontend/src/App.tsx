@@ -18,6 +18,7 @@ import AlertContainer from './utils/alert';
 import MePage from './components/UserAccount';
 import AccountSettings from './components/ui/dashboard/user/AccountSettings';
 import MyOrders from './components/ui/dashboard/user/MyOrders';
+import OrderDetails from './components/ui/dashboard/user/OrderDetails';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -50,6 +51,7 @@ function App() {
             <Route path="/me" element={<MePage />} />
             <Route path="/me/settings" element={<AccountSettings />} />
             <Route path="/me/orders" element={<MyOrders />} />
+            <Route path="/me/orders/:orderId" element={<OrderDetails />} />
           </Route>
           {/* Unauthorized route */}
           <Route path="/unauthorized" element={<Unauthorized />} />

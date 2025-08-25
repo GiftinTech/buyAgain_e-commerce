@@ -54,7 +54,7 @@ const Login = () => {
     }
 
     const result = await handleLogin(email, password);
-    console.log('login result', result);
+    //console.log('login result', result);
 
     if (result.success) {
       showAlert('success', 'Logged in successfully!', 2);

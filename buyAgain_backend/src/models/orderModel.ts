@@ -1,4 +1,4 @@
-import { model, Schema, Types, Document, CallbackError, Query } from 'mongoose';
+import { model, Schema, Types, Document } from 'mongoose';
 
 // Define the IOrderItems interface
 export interface IOrderItems {
@@ -37,6 +37,7 @@ export interface IShippingAddress {
 // Corrected IOrder interface
 export interface IOrder extends Document {
   user: Types.ObjectId;
+  displayId: string;
   paid: boolean;
   createdAt: Date;
   status: string;
@@ -51,6 +52,10 @@ const orderSchema = new Schema<IOrder>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Order must belong to a user!'],
+    },
+    displayId: {
+      type: String,
+      unique: true,
     },
     paid: {
       type: Boolean,
@@ -86,6 +91,15 @@ const orderSchema = new Schema<IOrder>(
     toObject: { virtuals: true },
   },
 );
+
+// unique and user friendly order Id display
+orderSchema.pre('save', async function (next) {
+  if (this.isNew) {
+    const count = await (this.constructor as any).countDocuments();
+    this.displayId = `ORD-${String(count + 1).padStart(4, '0')}`;
+  }
+  next();
+});
 
 orderSchema.virtual('totalPrice').get(function () {
   if (!this.orderItems) return 0;

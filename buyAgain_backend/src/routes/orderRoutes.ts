@@ -15,6 +15,7 @@ router
   .post(orderController.createOrder);
 
 router.route('/my-orders').get(orderController.getMyOrders);
+router.route('/my-orders/:orderId').get(orderController.getOrderDetails); // get order details
 
 // Protected and Restricted Routes
 router

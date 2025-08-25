@@ -327,11 +327,26 @@ const getAllOrders = factory.getAll<IOrder>(Order, 'orders');
 const getMyOrders = catchAsync(
   async (req: CustomRequest, res: Response, next: NextFunction) => {
     const userId = req.user.id;
-    const orders = await Order.find({ user: userId }).populate('orderItems');
 
     if (!req.user || !userId) {
       console.log('Request from unauthenticated user. Returning empty orders.');
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          orders: [],
+        },
+      });
     }
+
+    const orders = await Order.find({ user: userId })
+      .populate({
+        path: 'orderItems.product',
+        select: 'name thumbnail',
+      })
+      .select(
+        'user displayId paid shippingAddress orderItems status createdAt totalPrice _id',
+      )
+      .sort('-createdAt');
 
     if (!orders) {
       console.log(
@@ -343,6 +358,55 @@ const getMyOrders = catchAsync(
       status: 'success',
       data: {
         orders,
+      },
+    });
+  },
+);
+
+// Controller for getting a single order's details
+const getOrderDetails = catchAsync(
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    // i. Get the order ID from the request parameters
+    const { orderId } = req.params;
+
+    // ii. Ensure the user is authenticated
+    if (!req.user || !req.user.id) {
+      return next(
+        new AppError('You must be logged in to view order details.', 401),
+      );
+    }
+
+    // iii. Find the order by its ID and populate necessary fields
+    const order = await Order.findById(orderId)
+      .populate({
+        path: 'orderItems.product',
+        select: 'name thumbnail',
+      })
+      .populate({
+        path: 'user',
+        select: 'name email',
+      });
+
+    // iv. Handle case where no order is found
+    if (!order) {
+      return next(new AppError('No order found with that ID.', 404));
+    }
+
+    // v. Authorization: Ensure the logged-in user is the owner of the order or has an 'admin' role
+    if (
+      order.user._id.toString() !== req.user.id &&
+      req.user.role !== 'admin'
+    ) {
+      return next(
+        new AppError('You do not have permission to view this order.', 403),
+      );
+    }
+
+    // vi. Send the order details in the response
+    res.status(200).json({
+      status: 'success',
+      data: {
+        order,
       },
     });
   },
@@ -391,4 +455,5 @@ export default {
   getCheckoutSession,
   webhookCheckout,
   getMyOrders,
+  getOrderDetails,
 };

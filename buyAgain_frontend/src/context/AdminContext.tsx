@@ -45,16 +45,16 @@ interface ShippingAddress {
   country: string;
 }
 
-interface OrderItem {
+export interface OrderItem {
   product: string | Partial<IProduct>;
   quantity: number;
   priceAtTimeOfOrder: number;
-  thumbnail: string;
 }
 
 export interface IOrder {
   _id: string;
   user: string;
+  displayId: string;
   status: string;
   paid: boolean;
   createdAt: string;
@@ -77,7 +77,7 @@ interface AdminContextType {
   users: AdminCreateUser | null;
   products: IProduct[] | null;
   orders: OrdersResponse | null;
-  myOrders: IOrder | null;
+  myOrders: OrdersResponse | null;
 
   // Functions to trigger CRUD operations
   handleFetchUsers: () => Promise<{
@@ -95,7 +95,7 @@ interface AdminContextType {
   handleFetchMyOrders: () => Promise<{
     success: boolean;
     message?: string;
-    myOrders?: IOrder | null;
+    myOrders?: OrdersResponse | null;
   }>;
   handleCreateUser: (user: Partial<AdminCreateUser>) => Promise<void>;
   handleUpdateUser: (user: AdminCreateUser) => Promise<void>;
@@ -122,10 +122,12 @@ const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
 // provide the state
 const AdminProvider = ({ children }: AdminProviderProps) => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const location = useLocation();
+  // Local state to hold users
+  const [users, setUsers] = useState<AdminCreateUser | null>(null);
 
-  const userProfile = user?.data.users;
+  //const userProfile = user?.data.users;
 
   const authOptions = useMemo(() => {
     return {
@@ -174,14 +176,11 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
     data: fetchedMyOrders,
     loading: myOrdersLoading,
     error: myOrdersError,
-  } = useFetch<IOrder>(
+  } = useFetch<OrdersResponse>(
     '/orders/my-orders',
     authOptions,
-    !!userProfile && location.pathname === '/my-orders', // <-- enabled only when needed
+    location.pathname === '/me/orders',
   );
-
-  // Local state to hold users
-  const [users, setUsers] = useState<AdminCreateUser | null>(null);
 
   // Trigger refetch of users only when route is /admin
   useEffect(() => {
@@ -324,13 +323,13 @@ const AdminProvider = ({ children }: AdminProviderProps) => {
       success: true,
       message: 'Orders fetched successfully.',
       orders: fetchedOrders,
-    }; // error came because I change useFetch and how I fetch data from db. II don want all fetches to be call except i'm on the page that needs it
+    };
   };
 
   const handleFetchMyOrders = async (): Promise<{
     success: boolean;
     message?: string;
-    myOrders?: IOrder | null;
+    myOrders?: OrdersResponse | null;
   }> => {
     if (myOrdersError) {
       return { success: false, message: ordersError! };

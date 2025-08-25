@@ -5,10 +5,8 @@ import type { IProduct, IProductResponse } from '../context/CartContext';
 import useCart from '../hooks/useCart';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
-import { useAlert } from '../hooks/useAlert';
 
 const ProductListing: React.FC = () => {
-  const { showAlert } = useAlert();
   const {
     handleFetchProduct,
     productList,
@@ -94,18 +92,12 @@ const ProductListing: React.FC = () => {
     if (params.get('alert') === 'order') {
       onPaymentSuccess();
 
-      showAlert(
-        'success',
-        'Your order was successful! Please check "My Order" for a confirmation. If your order doesn’t show up here immediately, please come back later.',
-        5,
-      );
-
       // Remove query param after alert
       params.delete('alert');
       const newUrl = `${location.pathname}?${params.toString()}`;
       navigate(newUrl, { replace: true });
     }
-  }, [location, navigate, showAlert]);
+  }, [location, navigate, onPaymentSuccess]);
 
   if (location.pathname !== '/') return null;
 

@@ -40,7 +40,7 @@ const Header = () => {
   const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
   const userProfile = user?.data.users; // In PROD, use user?.data.dataKey.photo;
-  console.log(cartItems);
+  //console.log(cartItems);
   // total items in cart
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 

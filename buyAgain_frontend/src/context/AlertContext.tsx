@@ -20,16 +20,15 @@ export interface AlertContextType {
 export const AlertProvider = ({ children }: { children: ReactNode }) => {
   const [alert, setAlert] = useState<AlertState | null>(null);
 
-  const showAlert = (
-    type: 'success' | 'error' | 'info',
-    message: string,
-    duration = 5,
-  ) => {
-    setAlert({ type, message, duration });
-    setTimeout(() => {
-      setAlert(null);
-    }, duration * 1000);
-  };
+  const showAlert = useCallback(
+    (type: 'success' | 'error' | 'info', message: string, duration = 5) => {
+      setAlert({ type, message, duration });
+      setTimeout(() => {
+        setAlert(null);
+      }, duration * 1000);
+    },
+    [],
+  );
 
   const hideAlert = useCallback(() => setAlert(null), []);
 

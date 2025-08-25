@@ -130,28 +130,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  useEffect(() => {
-    // On component mount, check for existing JWT token in localStorage
-    try {
-      const storedToken = localStorage.getItem('access_token');
-      console.log('Token on load:', storedToken);
-      if (storedToken) {
-        const isValid = decodeJwt(storedToken);
-        if (isValid) {
-          fetchUserProfile(storedToken);
-          setToken(storedToken);
-        } else {
-          localStorage.removeItem('access_token');
-          setUser(null);
-        }
-      }
-    } catch (err) {
-      console.error('Error accessing localStorage:', err);
-    }
-
-    setLoadingAuth(false);
-  }, []);
-
   const handleSignup = async (
     name: string,
     email: string,
@@ -221,14 +199,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         if (typeof accessToken === 'string' && accessToken.length > 0) {
           localStorage.setItem('access_token', accessToken);
           const isTokenValid = decodeJwt(accessToken);
-          console.log('Decoded JWT:', isTokenValid);
+          // console.log('Decoded JWT:', isTokenValid);
 
           setToken(accessToken);
 
           if (isTokenValid) {
             try {
               const userProfile = await fetchUserProfile(accessToken);
-              console.log('Fetched userProfile:', userProfile);
+              // console.log('Fetched userProfile:', userProfile);
               setUser(userProfile);
               return { success: true, userProfile };
             } catch (error) {
@@ -393,6 +371,36 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       return { success: false, message: 'Network error. Please try again.' };
     }
   };
+
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const storedToken = localStorage.getItem('access_token');
+        if (storedToken) {
+          const isValid = decodeJwt(storedToken);
+          if (isValid) {
+            // Await the asynchronous fetchUserProfile function
+            await fetchUserProfile(storedToken);
+            setToken(storedToken); // Set token state on success
+          } else {
+            localStorage.removeItem('access_token');
+            setUser(null);
+          }
+        }
+      } catch (err) {
+        console.error('Error accessing localStorage:', err);
+        // In case of any error, clear the session
+        localStorage.removeItem('access_token');
+        setUser(null);
+      } finally {
+        // This is the correct place to set loadingAuth to false
+        setLoadingAuth(false);
+      }
+    };
+
+    setLoadingAuth(true);
+    restoreSession();
+  }, []);
 
   const contextValue: AuthContextType = {
     user,

@@ -226,7 +226,7 @@ const Checkout = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded bg-pink-500 py-2 text-white hover:bg-pink-600 disabled:opacity-50"
+          className={`${loading ? 'cursor-not-allowed' : 'cursor-pointer'} w-full rounded bg-pink-500 py-2 text-white hover:bg-pink-600 disabled:opacity-50`}
         >
           {loading ? 'Processing...' : 'Place Order'}
         </button>
