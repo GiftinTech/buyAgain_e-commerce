@@ -69,7 +69,7 @@ const AdminDashboard: React.FC = () => {
       )}
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col md:ml-64">
+      <div className="flex min-w-0 flex-1 flex-col md:ml-64">
         {/* Header */}
         <Header
           toggleTheme={toggleTheme}
@@ -80,7 +80,7 @@ const AdminDashboard: React.FC = () => {
         />
 
         {/* Content */}
-        <main className="flex-grow p-6">
+        <main className="flex-grow py-6 sm:p-6">
           {/* Tabs navigation */}
           <div className="mb-6 flex gap-4 border-b border-gray-300 dark:border-gray-700">
             {['dashboard', 'users', 'products', 'orders'].map((tab) => (

@@ -318,7 +318,8 @@ const CartProvider = ({ children }: ShopProviderProps) => {
 
   // Load cart items on component mount
   useEffect(() => {
-    if (location.pathname === '/cart' || user !== undefined) fetchCartItems();
+    if (location.pathname === '/cart' || location.pathname === '/')
+      fetchCartItems();
   }, [location.pathname, user, fetchCartItems]);
 
   // Updates the quantity of an existing item in the cart
@@ -347,6 +348,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({ quantity: newQuantity }),
           },

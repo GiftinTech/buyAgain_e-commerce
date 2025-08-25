@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, XCircle, Edit, Trash2 } from 'lucide-react';
+import { Plus, XCircle, Edit, Trash2, CheckCheckIcon, X } from 'lucide-react';
 import type { IProduct } from '../../../context/CartContext';
 import useAdmin from '../../../hooks/useAdmin';
 import useCart from '../../../hooks/useCart';
@@ -92,7 +92,7 @@ const ProductManagement = () => {
   if (location.pathname !== '/admin') return null;
 
   return (
-    <section className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+    <section className="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">
           Product Management
@@ -195,127 +195,138 @@ const ProductManagement = () => {
       />
 
       {/* Products Table */}
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-        <thead className="bg-gray-50 dark:bg-gray-600">
-          <tr>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              S/N
-            </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              Name
-            </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              Price
-            </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              Stock
-            </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-200">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-gray-600">
-          {paginatedProducts?.map((product, i) =>
-            editingProduct?.id === product.id ? (
-              <tr key={product.id}>
-                <td className="cursor-pointer px-4 py-2 text-sm dark:text-gray-200">
-                  {(productPage - 1) * PAGE_SIZE + i + 1}
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  <input
-                    type="text"
-                    value={editingProduct.name}
-                    onChange={(e) =>
-                      setEditingProduct({
-                        ...editingProduct,
-                        name: e.target.value,
-                      })
-                    }
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                  />
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  <input
-                    type="text"
-                    value={editingProduct.price}
-                    onChange={(e) => {
-                      const newPrice = parseFloat(e.target.value);
-                      setEditingProduct({
-                        ...editingProduct,
-                        price: isNaN(newPrice) ? 0 : newPrice,
-                      });
-                    }}
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                  />
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  <input
-                    type="number"
-                    value={editingProduct.stock}
-                    onChange={(e) =>
-                      setEditingProduct({
-                        ...editingProduct,
-                        stock: Number(e.target.value),
-                      })
-                    }
-                    className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                    min={0}
-                  />
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  <button
-                    onClick={saveProduct}
-                    className="mr-2 rounded bg-pink-500 px-3 py-1 text-white hover:bg-pink-600"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={cancelEditProduct}
-                    className="rounded border border-pink-500 px-3 py-1 text-pink-500 hover:bg-pink-100"
-                  >
-                    Cancel
-                  </button>
-                </td>
-              </tr>
-            ) : (
-              <tr
-                key={product.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {(productPage - 1) * PAGE_SIZE + i + 1}
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {product.name}
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  ₦{product.price}
-                </td>
-                <td className="px-4 py-2 text-sm dark:text-gray-200">
-                  {product.stock}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                  <button
-                    onClick={() => startEditProduct(product)}
-                    className="mr-4 text-pink-600 hover:text-pink-900 dark:text-pink-400 dark:hover:text-pink-300"
-                    aria-label={`Edit product ${product.name}`}
-                  >
-                    <Edit className="inline h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteProduct(product.id)}
-                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                    aria-label={`Delete product ${product.name}`}
-                  >
-                    <Trash2 className="inline h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ),
-          )}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto rounded-lg bg-white shadow dark:bg-gray-800">
+        {' '}
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+          <thead className="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
+                S/N
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
+                Name
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
+                Price
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
+                Stock
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-600">
+            {paginatedProducts?.map((product, i) =>
+              editingProduct?.id === product.id ? (
+                <tr key={product.id}>
+                  <td className="cursor-pointer px-4 py-2 text-sm dark:text-gray-200">
+                    {(productPage - 1) * PAGE_SIZE + i + 1}
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    <input
+                      type="text"
+                      value={editingProduct.name}
+                      onChange={(e) =>
+                        setEditingProduct({
+                          ...editingProduct,
+                          name: e.target.value,
+                        })
+                      }
+                      className="w-full max-w-xs rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    <input
+                      type="text"
+                      value={editingProduct.price}
+                      onChange={(e) => {
+                        const newPrice = parseFloat(e.target.value);
+                        setEditingProduct({
+                          ...editingProduct,
+                          price: isNaN(newPrice) ? 0 : newPrice,
+                        });
+                      }}
+                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    <input
+                      type="number"
+                      value={editingProduct.stock}
+                      onChange={(e) =>
+                        setEditingProduct({
+                          ...editingProduct,
+                          stock: Number(e.target.value),
+                        })
+                      }
+                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                      min={0}
+                    />
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    <div className="flex flex-row gap-4 sm:flex-row">
+                      <button
+                        onClick={saveProduct}
+                        className="text-green-500 hover:text-green-600"
+                        title="Save Edit"
+                      >
+                        <CheckCheckIcon />
+                      </button>
+                      <button
+                        onClick={cancelEditProduct}
+                        className="text-red-500 hover:text-red-600"
+                        title="Cancel Edit"
+                      >
+                        <X />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr
+                  key={product.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    {(productPage - 1) * PAGE_SIZE + i + 1}
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    {product.name}
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    ₦{product.price}
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    {product.stock}
+                  </td>
+                  <td className="px-4 py-2 text-sm dark:text-gray-200">
+                    <div className="flex flex-row gap-6 sm:flex-row">
+                      <button
+                        onClick={() => startEditProduct(product)}
+                        className="text-pink-600 hover:text-pink-900 dark:text-pink-400 dark:hover:text-pink-300"
+                        aria-label={`Edit product ${product.name}`}
+                        title="Edit Product"
+                      >
+                        <Edit className="inline h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteProduct(product.id)}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        aria-label={`Delete product ${product.name}`}
+                        title="Delete Product"
+                      >
+                        <Trash2 className="inline h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ),
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
       <div className="mt-4 flex justify-between text-gray-600 dark:text-gray-300">

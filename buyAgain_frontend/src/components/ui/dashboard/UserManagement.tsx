@@ -225,7 +225,7 @@ const UserManagement = () => {
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium">
                     <button
                       onClick={() => openModal(user)}
-                      className="mr-4 text-pink-600 hover:text-pink-900 dark:text-pink-400 dark:hover:text-pink-300"
+                      className="mr-4 text-blue-500 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       <Edit className="inline h-4 w-4" />
                     </button>
@@ -251,7 +251,7 @@ const UserManagement = () => {
           </tbody>
         </table>
 
-        {/* Pagination - Styled exactly like product pagination */}
+        {/* Pagination - This is now inside the scrollable div */}
         {pageCount > 1 && (
           <div className="my-4 flex justify-between px-7 text-gray-600 dark:text-gray-300">
             <button
@@ -279,7 +279,7 @@ const UserManagement = () => {
 
       {/* User Modal (unchanged) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-50 dark:bg-opacity-80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-50 px-4 dark:bg-opacity-80 sm:px-0">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between border-b pb-3">
               <h3 className="text-xl font-bold">

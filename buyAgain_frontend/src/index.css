@@ -39,12 +39,12 @@ body {
 }
 
 /* Hide scrollbar for Webkit browsers */
-.scrollbar-hide::-webkit-scrollbar {
+::-webkit-scrollbar {
   display: none;
 }
 
 /* Hide scrollbar for other browsers if needed */
-.scrollbar-hide {
+* {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }

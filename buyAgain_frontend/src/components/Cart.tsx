@@ -16,8 +16,10 @@ const Cart: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="mx-auto max-w-2xl py-8 max-md:max-w-xl">
-      <h1 className="text-center text-2xl font-bold text-white">Your Cart</h1>
+    <div className="mx-auto max-w-2xl py-8 pr-4 max-md:max-w-xl sm:pr-0">
+      <h1 className="mb-4 text-center text-2xl font-bold text-white">
+        Your Cart
+      </h1>
       {cartItems.length === 0 ? (
         <p className="mb-4 text-center">
           No items in cart! Please add some items
@@ -29,7 +31,7 @@ const Cart: React.FC = () => {
               key={item._id} // Use item._id as key for stability
               className="flex items-center justify-between border-b pb-4"
             >
-              <div className="flex items-center gap-4">
+              <div className="flex items-center sm:gap-4">
                 <img
                   src={item?.product?.thumbnail}
                   alt={item?.product?.name}
@@ -76,7 +78,7 @@ const Cart: React.FC = () => {
             </div>
           ))}
           {/* ... The rest of your component remains the same */}
-          <div className="mt-6 flex items-center justify-between text-lg font-bold">
+          <div className="flex items-center justify-between px-1 pt-10 text-lg font-bold sm:px-0 sm:pt-6">
             <span className="font-bold">Total:</span>
             <span>
               {' '}

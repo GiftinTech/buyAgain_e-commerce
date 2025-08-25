@@ -218,7 +218,7 @@ const AccountSettings: React.FC = () => {
 
         {/* Tab Content */}
         {tab === 'profile' && (
-          <div className="px-10 text-black">
+          <div className="text-black sm:px-10">
             <h2 className="mb-2 text-lg font-semibold text-black dark:text-white">
               Personal Information
             </h2>
@@ -266,14 +266,13 @@ const AccountSettings: React.FC = () => {
                 </div>
               )}
 
-              <label className="font-semibold">Upload profile picture:</label>
               <FileUpload
                 onFileChange={setPhoto}
                 initialPhotoUrl={user?.data?.users?.photo}
               />
 
               {/* Loading and message feedback */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 pt-6">
                 <button
                   type="submit"
                   className={`text-md overflow-hidden text-ellipsis whitespace-nowrap rounded-lg p-2 text-white transition-colors ${
@@ -298,7 +297,7 @@ const AccountSettings: React.FC = () => {
         )}
 
         {tab === 'security' && (
-          <div className="px-10 text-black">
+          <div className="text-black sm:px-10">
             <h2 className="mb-2 text-lg font-semibold dark:text-white">
               Security
             </h2>

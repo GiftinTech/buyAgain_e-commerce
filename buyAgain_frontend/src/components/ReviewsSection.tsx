@@ -92,7 +92,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ productId }) => {
       </div>
 
       {/* Scrollable container */}
-      <div className="scrollbar-hide max-h-96 overflow-y-auto py-4">
+      <div className="max-h-96 overflow-y-auto py-4">
         {productReviews.length > 0 ? (
           <div className="space-y-4">
             {productReviews.map((review) => (

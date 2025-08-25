@@ -68,7 +68,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const imageUrl = previewUrl || initialPhotoUrl;
 
   return (
-    <div className="w-full">
+    <div className="w-full pt-5">
+      <div className="mb-5 font-semibold dark:text-white">
+        Upload profile picture:
+      </div>
       <div className="flex flex-col items-center">
         <div className="mb-4 h-32 w-32 overflow-hidden rounded-full border border-gray-300">
           {/* Use the imageUrl variable here */}
