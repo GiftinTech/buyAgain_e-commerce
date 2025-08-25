@@ -89,8 +89,8 @@ const getCheckoutSession = catchAsync(
       //    success_url: `${req.protocol}://${req.get('host')}/orders/?product=${
       //   req.params.productId
       // }&user=${req.user.id}&price=${product.price}`, // remove in prod
-      success_url: `${frontend_url}/?alert=order`,
-      cancel_url: `${frontend_url}/orders/${productSlug}`,
+      success_url: `${frontend_url}?alert=order`,
+      cancel_url: `${frontend_url}orders/${productSlug}`,
       customer_email: req.user.email,
       client_reference_id: orderId,
       line_items: lineItems,
