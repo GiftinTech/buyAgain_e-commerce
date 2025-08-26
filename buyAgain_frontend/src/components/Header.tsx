@@ -39,10 +39,12 @@ const Header = () => {
   // Base URL for buyAgain buyAgain_backend API
   const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
-  const userProfile = user?.data.users; // In PROD, use user?.data.dataKey.photo;
-  //console.log(cartItems);
+  const userProfile = user?.data.users;
+
   // total items in cart
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = cartItems
+    ? cartItems.reduce((sum, item) => sum + item.quantity, 0)
+    : 0;
 
   const navLinks: NavLinks[] = [
     {

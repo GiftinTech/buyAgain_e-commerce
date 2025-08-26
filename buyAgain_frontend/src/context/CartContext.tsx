@@ -653,32 +653,6 @@ const CartProvider = ({ children }: ShopProviderProps) => {
     [user, fetchCartItems, saveLocalCart],
   );
 
-  // clear all items from cart
-  const handleClearCart = useCallback(async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch(`${BUYAGAIN_API_BASE_URL}/cart`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to clear cart on server.');
-      }
-
-      console.log('Cart successfully cleared from database.');
-    } catch (err) {
-      console.error('Failed to clear cart from database:', err);
-      setError('Failed to clear cart.');
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
   // increase quantity
   const handleIncreaseQuantity = async (cartItem: ICartItem) => {
     setLoading(true);
@@ -806,17 +780,7 @@ const CartProvider = ({ children }: ShopProviderProps) => {
 
     // Remove from local storage
     localStorage.removeItem(LOCAL_STORAGE_CART_KEY);
-
-    // Wait for the server to clear the cart
-    await handleClearCart();
-
-    // Show the success alert
-    showAlert(
-      'success',
-      'Your order was successful! Please check "My Order" for a confirmation. If your order doesn’t show up here immediately, please come back later.',
-      5,
-    );
-  }, [handleClearCart, showAlert]);
+  }, []);
 
   const contextValue: CartContextType = {
     loading,

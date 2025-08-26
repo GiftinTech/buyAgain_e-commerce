@@ -7,6 +7,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ProductSkeleton } from './ui/ReactSkeletonLoader/ProductSkeleton';
 
 const ProductListing: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     handleFetchProduct,
     productList,
@@ -14,10 +17,7 @@ const ProductListing: React.FC = () => {
     productLoading,
     handleAddToCart,
     cartItems,
-    onPaymentSuccess,
   } = useCart();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const handleNavigateToProductDetails = (getCurrentProductId: string) => {
     if (!getCurrentProductId) return;
@@ -28,7 +28,7 @@ const ProductListing: React.FC = () => {
 
   // Memoize fetchProduct outside of useEffect
   const fetchProduct = useCallback(
-    async (q: string | null) => {
+    async (q: string | null, retryCount = 0) => {
       try {
         const result = await handleFetchProduct(q || '');
         if (result.success && result.products) {
@@ -39,12 +39,21 @@ const ProductListing: React.FC = () => {
         }
       } catch (err) {
         console.error('Error in fetchProducts:', err);
+        if (err && retryCount < 5) {
+          // wait a few seconds and try again
+          console.warn(
+            `Error fetching product, retrying... Attempt ${retryCount + 1}`,
+          );
+          setTimeout(() => {
+            fetchProduct(new URLSearchParams(location.search).get('category'));
+          }, 2000); // Wait for 2 seconds before retrying
+          return;
+        }
       }
     },
     [handleFetchProduct],
   );
 
-  // UseEffect with stable dependencies
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('category');
@@ -86,19 +95,6 @@ const ProductListing: React.FC = () => {
     return stars;
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-
-    if (params.get('alert') === 'order') {
-      onPaymentSuccess();
-
-      // Remove query param after alert
-      params.delete('alert');
-      const newUrl = `${location.pathname}?${params.toString()}`;
-      navigate(newUrl, { replace: true });
-    }
-  }, [location, navigate, onPaymentSuccess]);
-
   if (location.pathname !== '/') return null;
 
   // Conditional Rendering for Loading, Error, and No Products
@@ -117,14 +113,6 @@ const ProductListing: React.FC = () => {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center py-8 font-semibold text-red-600">
         <p> Failed to fetch products. Please try again later...</p>
-        <button
-          onClick={() =>
-            fetchProduct(new URLSearchParams(location.search).get('category'))
-          }
-          className="mt-4 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-        >
-          Retry
-        </button>
       </div>
     );
   }

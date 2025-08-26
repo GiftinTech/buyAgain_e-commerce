@@ -29,7 +29,7 @@ const Checkout = () => {
     priceAtTimeOfOrder: item.product.price,
   }));
 
-  console.log('Order Items:', orderItems);
+  //console.log('Order Items:', orderItems);
 
   const [name, setName] = useState('');
   const [shippingAddress, setShippingAddress] = useState<IShippingAddress>({
@@ -142,7 +142,7 @@ const Checkout = () => {
             className="w-full rounded border p-2 dark:text-black"
             placeholder="Enter your full name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value.trim())}
             required
           />
         </div>
@@ -157,7 +157,10 @@ const Checkout = () => {
             placeholder="123 Main St"
             value={shippingAddress.street}
             onChange={(e) =>
-              setShippingAddress({ ...shippingAddress, street: e.target.value })
+              setShippingAddress({
+                ...shippingAddress,
+                street: e.target.value.trim(),
+              })
             }
             required
           />
@@ -171,7 +174,10 @@ const Checkout = () => {
             placeholder="Lagos"
             value={shippingAddress.city}
             onChange={(e) =>
-              setShippingAddress({ ...shippingAddress, city: e.target.value })
+              setShippingAddress({
+                ...shippingAddress,
+                city: e.target.value.trim(),
+              })
             }
             required
           />
@@ -185,7 +191,10 @@ const Checkout = () => {
             placeholder="Lagos State"
             value={shippingAddress.state}
             onChange={(e) =>
-              setShippingAddress({ ...shippingAddress, state: e.target.value })
+              setShippingAddress({
+                ...shippingAddress,
+                state: e.target.value.trim(),
+              })
             }
             required
           />
@@ -199,7 +208,10 @@ const Checkout = () => {
             placeholder="100001"
             value={shippingAddress.zip}
             onChange={(e) =>
-              setShippingAddress({ ...shippingAddress, zip: e.target.value })
+              setShippingAddress({
+                ...shippingAddress,
+                zip: e.target.value.trim(),
+              })
             }
             required
           />
@@ -215,7 +227,7 @@ const Checkout = () => {
             onChange={(e) =>
               setShippingAddress({
                 ...shippingAddress,
-                country: e.target.value,
+                country: e.target.value.trim(),
               })
             }
             required

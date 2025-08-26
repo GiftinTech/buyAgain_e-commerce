@@ -4,6 +4,8 @@ import orderController from '../controllers/orderController';
 
 const router = express.Router();
 
+router.get('/success', orderController.handleOrderSuccess);
+
 // Protected Routes
 router.use(authController.protectRoute);
 
@@ -16,6 +18,8 @@ router
 
 router.route('/my-orders').get(orderController.getMyOrders);
 router.route('/my-orders/:orderId').get(orderController.getOrderDetails); // get order details
+
+router.get('/session/:sessionId', orderController.getOrderBySessionId);
 
 // Protected and Restricted Routes
 router

@@ -18,6 +18,8 @@ import MePage from './components/UserAccount';
 import AccountSettings from './components/ui/dashboard/user/AccountSettings';
 import MyOrders from './components/ui/dashboard/user/MyOrders';
 import OrderDetails from './components/ui/dashboard/user/OrderDetails';
+import OrderSuccessPage from './components/ui/dashboard/user/OrderSuccess';
+import PaymentFailedPage from './components/ui/dashboard/user/PaymentFailed';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -45,6 +47,11 @@ function App() {
             <Route path="/me/settings" element={<AccountSettings />} />
             <Route path="/me/orders" element={<MyOrders />} />
             <Route path="/me/orders/:orderId" element={<OrderDetails />} />
+            <Route path="/orders/success" element={<OrderSuccessPage />} />
+            <Route
+              path="/orders/payment-failed"
+              element={<PaymentFailedPage />}
+            />
           </Route>
           {/* Unauthorized route */}
           <Route path="/unauthorized" element={<Unauthorized />} />

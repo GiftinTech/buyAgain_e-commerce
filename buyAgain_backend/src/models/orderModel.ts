@@ -41,8 +41,10 @@ export interface IOrder extends Document {
   paid: boolean;
   createdAt: Date;
   status: string;
+  stripeSessionId: string;
   shippingAddress: IShippingAddress;
   orderItems: Types.DocumentArray<IOrderItems>;
+  paymentIntentId: string;
 }
 
 // Corrected order schema
@@ -75,7 +77,12 @@ const orderSchema = new Schema<IOrder>(
         'cancelled',
         'failed',
       ],
+
       default: 'pending',
+    },
+    stripeSessionId: {
+      type: String,
+      unique: true,
     },
     shippingAddress: {
       street: { type: String, required: true },
@@ -85,6 +92,11 @@ const orderSchema = new Schema<IOrder>(
       country: { type: String, required: true },
     },
     orderItems: [orderItemsSchema],
+    paymentIntentId: {
+      type: String,
+      unique: true,
+      sparse: true, // Allows null or undefined values to be unique
+    },
   },
   {
     toJSON: { virtuals: true },
