@@ -12,6 +12,8 @@ import {
   Truck,
   ArrowLeft,
   XCircle,
+  Loader2,
+  Check,
 } from 'lucide-react';
 import useAuth from '../../../../hooks/useAuth';
 import useCart from '../../../../hooks/useCart';
@@ -132,6 +134,7 @@ const ActionButtons = ({
 }) => {
   const { showAlert } = useAlert();
   const { token } = useAuth();
+  const [downloadStatus, setDownloadStatus] = useState('idle');
 
   const handleDownloadReceipt = async () => {
     console.log('Attempting to download receipt for order:', orderId);
@@ -140,6 +143,8 @@ const ActionButtons = ({
       showAlert('info', 'You must be logged in to download receipts.', 2);
       return;
     }
+
+    setDownloadStatus('downloading');
 
     try {
       const response = await fetch(
@@ -157,14 +162,31 @@ const ActionButtons = ({
         throw new Error(errorData.message || 'Failed to download receipt.');
       }
 
-      showAlert(
-        'success',
-        'Receipt download initiated! Check your downloads or a new tab.',
-        2,
-      );
-    } catch (error: unknown) {
+      const data = await response.json();
+      const { receipt_url } = data;
+
+      if (receipt_url) {
+        window.open(receipt_url, '_blank');
+        setDownloadStatus('success');
+        setTimeout(() => setDownloadStatus('idle'), 2000);
+        console.log('Opened receipt URL:', receipt_url);
+      } else {
+        showAlert(
+          'error',
+          'Receipt URL not received from server. Please try again later.',
+          3,
+        );
+        throw new Error('Receipt URL not received from server.');
+      }
+    } catch (error) {
       console.error('Error downloading receipt:', error);
-      showAlert('error', 'Failed to download receipt', 2);
+      showAlert(
+        'error',
+        'Failed to download receipt. Please try again later.',
+        3,
+      );
+      setDownloadStatus('error');
+      setTimeout(() => setDownloadStatus('idle'), 3000);
     }
   };
 
@@ -187,11 +209,35 @@ const ActionButtons = ({
       </button>
       <button
         onClick={handleDownloadReceipt}
-        className="flex flex-1 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 px-6 py-3 font-medium text-white transition-colors hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
+        disabled={downloadStatus === 'downloading'} // Disable only during download
+        className={`flex flex-1 items-center justify-center rounded-lg border px-6 py-3 font-medium transition-colors ${
+          downloadStatus === 'downloading'
+            ? 'cursor-not-allowed bg-gray-500 text-white'
+            : downloadStatus === 'success'
+              ? 'bg-green-600 text-white'
+              : downloadStatus === 'error'
+                ? 'bg-red-600 text-white'
+                : 'bg-gray-800 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600'
+        }`}
       >
-        <Download className="mr-2 h-5 w-5" />
-        Download Receipt
+        {downloadStatus === 'downloading' ? (
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+        ) : downloadStatus === 'success' ? (
+          <Check className="mr-2 h-5 w-5" />
+        ) : downloadStatus === 'error' ? (
+          <XCircle className="mr-2 h-5 w-5" />
+        ) : (
+          <Download className="mr-2 h-5 w-5" />
+        )}
+        {downloadStatus === 'downloading'
+          ? 'Downloading...'
+          : downloadStatus === 'success'
+            ? 'Downloaded!'
+            : downloadStatus === 'error'
+              ? 'Failed to download.'
+              : 'Download Receipt'}
       </button>
+
       <button
         onClick={handleContinueShopping}
         className="flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-900 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
@@ -327,12 +373,6 @@ const OrderSuccessPage = () => {
       </div>
     );
   }
-
-  // Determine status class for the order badge
-  // const orderStatusClass =
-  //   order.status in statusColors
-  //     ? statusColors[order.status as OrderStatus]
-  //     : 'bg-gray-200 text-black';
 
   let orderStatusClass;
   let statusIcon;

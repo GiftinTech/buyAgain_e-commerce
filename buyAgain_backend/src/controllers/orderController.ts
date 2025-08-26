@@ -505,7 +505,10 @@ const getReceiptPdf = catchAsync(
 
       if (charge.receipt_url) {
         // Redirect the user to Stripe's hosted receipt page
-        return res.redirect(charge.receipt_url);
+        return res.status(200).json({
+          status: 'success',
+          receipt_url: charge.receipt_url,
+        });
       } else {
         return next(new AppError('Stripe receipt URL not available.', 404));
       }
