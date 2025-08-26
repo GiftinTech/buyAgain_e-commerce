@@ -11,9 +11,11 @@ import {
   ShoppingBag,
   Truck,
   ArrowLeft,
+  XCircle,
 } from 'lucide-react';
 import useAuth from '../../../../hooks/useAuth';
 import useCart from '../../../../hooks/useCart';
+import { useAlert } from '../../../../hooks/useAlert';
 
 // Types - matching your existing structure
 interface OrderItem {
@@ -48,24 +50,6 @@ interface IOrder {
   name: string;
   stripeSessionId: string;
 }
-
-type OrderStatus =
-  | 'pending'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
-  | 'cancelled'
-  | 'failed';
-
-// Define status colors - matching your existing pattern
-const statusColors: Record<OrderStatus, string> = {
-  pending: 'bg-pink-200 text-pink-900',
-  processing: 'bg-yellow-300 text-black',
-  shipped: 'bg-white text-black border border-black',
-  delivered: 'bg-pink-500 text-white',
-  cancelled: 'bg-gray-400 text-white',
-  failed: 'bg-red-500 text-white',
-};
 
 const BUYAGAIN_API_BASE_URL = import.meta.env.VITE_BUYAGAIN_API_BASE_URL;
 
@@ -146,9 +130,42 @@ const ActionButtons = ({
   orderId: string;
   navigate: any;
 }) => {
-  const handleDownloadReceipt = () => {
-    // Implement receipt download logic
-    console.log('Downloading receipt for order:', orderId);
+  const { showAlert } = useAlert();
+  const { token } = useAuth();
+
+  const handleDownloadReceipt = async () => {
+    console.log('Attempting to download receipt for order:', orderId);
+
+    if (!token) {
+      showAlert('info', 'You must be logged in to download receipts.', 2);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${BUYAGAIN_API_BASE_URL}/orders/${orderId}/receipt`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to download receipt.');
+      }
+
+      showAlert(
+        'success',
+        'Receipt download initiated! Check your downloads or a new tab.',
+        2,
+      );
+    } catch (error: unknown) {
+      console.error('Error downloading receipt:', error);
+      showAlert('error', 'Failed to download receipt', 2);
+    }
   };
 
   const handleViewOrderDetails = () => {
@@ -312,10 +329,38 @@ const OrderSuccessPage = () => {
   }
 
   // Determine status class for the order badge
-  const orderStatusClass =
-    order.status in statusColors
-      ? statusColors[order.status as OrderStatus]
-      : 'bg-gray-200 text-black';
+  // const orderStatusClass =
+  //   order.status in statusColors
+  //     ? statusColors[order.status as OrderStatus]
+  //     : 'bg-gray-200 text-black';
+
+  let orderStatusClass;
+  let statusIcon;
+  let headerText;
+  let subheaderText;
+
+  if (order.status === 'processing' && order.paid) {
+    orderStatusClass =
+      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+    statusIcon = <SuccessAnimation />;
+    headerText = 'Order Placed Successfully! 🎉';
+    subheaderText =
+      "Thank you for your purchase. We've received your order and will process it shortly.";
+  } else if (order.status === 'pending' || order.paid === false) {
+    orderStatusClass =
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+    statusIcon = <Clock className="h-24 w-24 text-yellow-500" />;
+    headerText = 'Order Pending';
+    subheaderText =
+      'Your order is pending. We will confirm it as soon as payment is verified.';
+  } else {
+    orderStatusClass =
+      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+    statusIcon = <XCircle className="h-24 w-24 text-red-500" />;
+    headerText = 'Order Failed';
+    subheaderText =
+      'Something went wrong with your payment. Please check your order status or try again.';
+  }
 
   return (
     <>
@@ -331,13 +376,12 @@ const OrderSuccessPage = () => {
         <div className="mx-auto max-w-4xl">
           {/* Success Header */}
           <div className="mb-8 text-center">
-            <SuccessAnimation />
+            {statusIcon}
             <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
-              Order Placed Successfully! 🎉
+              {headerText}
             </h1>
             <p className="mb-6 text-lg text-gray-600 dark:text-gray-300">
-              Thank you for your purchase. We've received your order and will
-              process it shortly.
+              {subheaderText}
             </p>
             <span
               className={`inline-block rounded-full px-4 py-2 text-base font-medium ${orderStatusClass}`}

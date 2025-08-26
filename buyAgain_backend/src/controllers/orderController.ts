@@ -167,7 +167,9 @@ const createOrderCheckout = async (
 
     // Check for existing order using stripeSessionId to prevent duplicates
     // This is crucial for webhook retries and idempotent operations
-    let order = await Order.findOne({ stripeSessionId: session.id });
+    let order = await Order.findOne({ stripeSessionId: session.id }).populate(
+      'orderItems.product',
+    );
 
     if (order) {
       // If order already exists, update its status if it's different
@@ -459,6 +461,63 @@ const getOrderBySessionId = catchAsync(
   },
 );
 
+// download receipt
+const getReceiptPdf = catchAsync(
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const { orderId } = req.params;
+
+    if (!req.user) {
+      return next(new AppError('User not authenticated.', 401));
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return next(new AppError('Order not found.', 404));
+    }
+
+    if (order.user.toString() !== req.user.id) {
+      return next(
+        new AppError('Unauthorized: Order does not belong to user.', 403),
+      );
+    }
+
+    // get the receipt URL from Stripe
+    if (!order.paymentIntentId) {
+      return next(
+        new AppError('Payment Intent ID not found for this order.', 400),
+      );
+    }
+
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        order.paymentIntentId,
+      );
+      const chargeId = paymentIntent.latest_charge as string; // Get the latest charge ID
+
+      if (!chargeId) {
+        return next(
+          new AppError('No charge found for this payment intent.', 404),
+        );
+      }
+
+      const charge = await stripe.charges.retrieve(chargeId);
+
+      if (charge.receipt_url) {
+        // Redirect the user to Stripe's hosted receipt page
+        return res.redirect(charge.receipt_url);
+      } else {
+        return next(new AppError('Stripe receipt URL not available.', 404));
+      }
+    } catch (stripeError: any) {
+      console.error('Error retrieving Stripe receipt:', stripeError);
+      return next(
+        new AppError(`Error fetching receipt: ${stripeError.message}`, 500),
+      );
+    }
+  },
+);
+
 // MW to set the filter for user-specific data
 const setUserFilter = (
   req: CustomRequest,
@@ -642,6 +701,7 @@ export default {
   webhookCheckout,
   handleOrderSuccess,
   getOrderBySessionId,
+  getReceiptPdf,
   getMyOrders,
   getOrderDetails,
 };

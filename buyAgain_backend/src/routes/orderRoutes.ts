@@ -20,6 +20,7 @@ router.route('/my-orders').get(orderController.getMyOrders);
 router.route('/my-orders/:orderId').get(orderController.getOrderDetails); // get order details
 
 router.get('/session/:sessionId', orderController.getOrderBySessionId);
+router.get('/:orderId/receipt', orderController.getReceiptPdf);
 
 // Protected and Restricted Routes
 router
