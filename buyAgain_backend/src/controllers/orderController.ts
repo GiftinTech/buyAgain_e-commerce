@@ -420,7 +420,7 @@ const handleOrderSuccess = catchAsync(
     console.log(
       `Redirecting user to frontend success page for session: ${session_id}`,
     );
-    res.redirect(`${frontend_url}/orders/success?session_id=${session_id}`);
+    res.redirect(`${frontend_url}orders/success?session_id=${session_id}`);
   },
 );
 
