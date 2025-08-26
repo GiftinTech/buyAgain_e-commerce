@@ -15,9 +15,9 @@ import {
   Loader2,
   Check,
 } from 'lucide-react';
-import useAuth from '../../../../hooks/useAuth';
-import useCart from '../../../../hooks/useCart';
-import { useAlert } from '../../../../hooks/useAlert';
+import useAuth from '../hooks/useAuth';
+import useCart from '../hooks/useCart';
+import { useAlert } from '../hooks/useAlert';
 
 // Types - matching your existing structure
 interface OrderItem {
@@ -195,7 +195,7 @@ const ActionButtons = ({
   };
 
   const handleContinueShopping = () => {
-    navigate('/products');
+    navigate('/');
   };
 
   return (

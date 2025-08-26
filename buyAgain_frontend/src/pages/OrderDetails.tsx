@@ -1,15 +1,11 @@
-// src/components/Orders/OrderDetails.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, ShoppingBag, Truck } from 'lucide-react';
-import useAuth from '../../../../hooks/useAuth';
-import type {
-  OrderStatus,
-  IOrder,
-  OrderItem,
-} from '../../../../context/AdminContext';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import useAuth from '../hooks/useAuth';
+import type { OrderStatus, IOrder, OrderItem } from '../context/AdminContext';
 
-// Define status colors
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-pink-200 text-pink-900',
   processing: 'bg-yellow-300 text-black',
@@ -73,13 +69,61 @@ const OrderDetails: React.FC = () => {
     };
 
     fetchOrderDetails();
-  }, [orderId, token]); // Re-fetch if orderId or token changes
+  }, [orderId, token]);
 
-  // Display loading, error, or not found states
+  // Skeleton Loader
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <p className="text-lg">Loading order details...</p>
+      <div className="mt-10 min-h-screen p-6">
+        <div className="mx-auto max-w-4xl space-y-6 rounded-2xl border border-pink-100 bg-gray-800 p-8 shadow-lg">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <Skeleton width={200} height={32} />
+            <Skeleton width={100} height={28} />
+          </div>
+
+          {/* Order Summary */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton width={160} height={20} />
+              <Skeleton width={140} height={16} />
+              <Skeleton width={120} height={16} />
+              <Skeleton width={100} height={16} />
+            </div>
+            <div className="space-y-2">
+              <Skeleton width={160} height={20} />
+              <Skeleton width={200} height={16} />
+              <Skeleton width={180} height={16} />
+              <Skeleton width={150} height={16} />
+            </div>
+          </div>
+
+          <hr className="my-6 border-gray-200" />
+
+          {/* Order Items */}
+          <h2 className="text-2xl font-bold">Items in this Order</h2>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between border-b border-gray-200 pb-4"
+              >
+                <div className="flex items-center gap-4">
+                  <Skeleton width={64} height={64} />
+                  <div>
+                    <Skeleton width={180} height={20} />
+                    <Skeleton width={100} height={16} />
+                  </div>
+                </div>
+                <Skeleton width={80} height={20} />
+              </div>
+            ))}
+          </div>
+
+          <div className="text-right">
+            <Skeleton width={120} height={28} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -113,7 +157,6 @@ const OrderDetails: React.FC = () => {
     );
   }
 
-  // Determine status class for the order badge
   const orderStatusClass =
     order.status in statusColors
       ? statusColors[order.status as OrderStatus]
@@ -189,7 +232,6 @@ const OrderDetails: React.FC = () => {
                 className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-600"
               >
                 <div className="flex items-center gap-4">
-                  {/* Ensure item.product is an object and has thumbnail */}
                   {typeof item.product === 'object' &&
                     item.product?.thumbnail && (
                       <img

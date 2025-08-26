@@ -1,8 +1,10 @@
 import React from 'react';
 import { ArrowLeft, Package, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import useAdmin from '../../../../hooks/useAdmin';
-import type { OrderStatus } from '../../../../context/AdminContext';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import useAdmin from '../hooks/useAdmin';
+import type { OrderStatus } from '../context/AdminContext';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-pink-200 text-pink-900',
@@ -19,10 +21,47 @@ const MyOrders: React.FC = () => {
 
   if (loading)
     return (
-      <p className="mt-10 flex h-[60vh] items-center justify-center">
-        Loading orders...
-      </p>
+      <div className="mx-auto mt-10 max-w-4xl space-y-6 p-6">
+        <div className="flex items-center gap-2">
+          <Skeleton circle height={32} width={32} />
+          <Skeleton width={120} height={24} />
+        </div>
+
+        {/* Fake list of skeleton orders */}
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="space-y-4 rounded-2xl border border-pink-100 bg-white p-6 shadow-lg dark:bg-gray-800"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <Skeleton width={120} height={20} />
+                <Skeleton width={100} height={14} />
+              </div>
+              <Skeleton width={80} height={24} />
+            </div>
+
+            <div className="space-y-2">
+              {[1, 2].map((j) => (
+                <div key={j} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton height={48} width={48} />
+                    <Skeleton width={150} height={16} />
+                  </div>
+                  <Skeleton width={60} height={16} />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Skeleton width={100} height={32} />
+              <Skeleton width={80} height={20} />
+            </div>
+          </div>
+        ))}
+      </div>
     );
+
   if (myOrderError)
     return (
       <p className="mt-10 flex h-[60vh] items-center justify-center text-red-500">
@@ -31,7 +70,6 @@ const MyOrders: React.FC = () => {
     );
 
   const orders = myOrders?.orders;
-  //console.log('Orders data:', orders);
 
   return (
     <>
@@ -56,7 +94,6 @@ const MyOrders: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {orders?.map((order) => {
-                // Determine the statusClass for this specific order
                 const statusClass =
                   order.status in statusColors
                     ? statusColors[order.status as OrderStatus]

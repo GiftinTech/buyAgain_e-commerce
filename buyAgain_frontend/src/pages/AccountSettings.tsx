@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FileUpload from './PhotoUpload';
-import useUser from '../../../../hooks/useUser';
+import useUser from '../hooks/useUser';
 
 const AccountSettings: React.FC = () => {
   const navigate = useNavigate();

@@ -15,11 +15,11 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Unauthorized from './pages/Unauthorized';
 import AlertContainer from './utils/alert';
 import MePage from './components/UserAccount';
-import AccountSettings from './components/ui/dashboard/user/AccountSettings';
-import MyOrders from './components/ui/dashboard/user/MyOrders';
-import OrderDetails from './components/ui/dashboard/user/OrderDetails';
-import OrderSuccessPage from './components/ui/dashboard/user/OrderSuccess';
-import PaymentFailedPage from './components/ui/dashboard/user/PaymentFailed';
+import AccountSettings from './pages/AccountSettings';
+import MyOrders from './pages/MyOrders';
+import OrderDetails from './pages/OrderDetails';
+import OrderSuccessPage from './pages/OrderSuccess';
+import PaymentFailedPage from './pages/PaymentFailed';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
