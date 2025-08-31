@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express';
 
-import { Model, Document, Query } from 'mongoose';
+import mongoose, { Model, Document, Query } from 'mongoose';
 import catchAsync from '../utils/catchAsync';
 import APIFeatures from '../utils/apiFeatures';
 import AppError from '../utils/appError';
@@ -64,7 +64,21 @@ const getOne = <T extends Document>(
   popOptions?: { path: string; select: string },
 ) =>
   catchAsync(async (req, res, next) => {
-    let query = Model.findById(req.params.id);
+    // Determine if the request parameter is an ID or a slug
+    let query: Query<T | null, T, unknown, T>;
+    const { id } = req.params;
+
+    try {
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        // It's a valid ObjectId, so query by ID
+        query = Model.findById(id);
+      } else {
+        // It's not a valid ObjectId, so assume it's a slug and query by that field
+        query = Model.findOne({ slug: id });
+      }
+    } catch (err) {
+      return next(new AppError(`Invalid parameter provided`, 400));
+    }
 
     if (popOptions) query = query.populate(popOptions);
 

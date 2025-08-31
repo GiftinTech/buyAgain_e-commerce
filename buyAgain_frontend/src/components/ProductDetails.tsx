@@ -33,7 +33,7 @@ const ProductDetailsPage = () => {
 
   const navigate = useNavigate();
 
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
 
   const [mainImage, setMainImage] = useState<string | undefined>(undefined);
 
@@ -77,10 +77,18 @@ const ProductDetailsPage = () => {
   }, []);
 
   const fetchProductDetails = useCallback(async () => {
+    const param = slug || id;
+
+    if (!param) {
+      console.error('No product ID or slug provided.');
+      setProductDetails(null);
+      return;
+    }
+
     console.log('Loading products details...');
 
     try {
-      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/products/${id}`);
+      const res = await fetch(`${BUYAGAIN_API_BASE_URL}/products/${param}`);
 
       if (!res.ok) {
         throw new Error(res.statusText);
@@ -97,11 +105,11 @@ const ProductDetailsPage = () => {
 
       setProductDetails(null);
     }
-  }, [id, setProductDetails]);
+  }, [id, slug, setProductDetails]);
 
   useEffect(() => {
-    if (id) fetchProductDetails();
-  }, [id, fetchProductDetails]);
+    if (id || slug) fetchProductDetails();
+  }, [id, slug, fetchProductDetails]);
 
   if (productLoading) {
     return (

@@ -437,7 +437,10 @@ const getOrderBySessionId = catchAsync(
     }
 
     // Find the order in the database using the stored stripeSessionId
-    const order = await Order.findOne({ stripeSessionId: sessionId });
+    const order = await Order.findOne({ stripeSessionId: sessionId }).populate({
+      path: 'orderItems.product',
+      select: 'name slug',
+    });
 
     // Handle case where the order is not found
     if (!order) {

@@ -18,16 +18,12 @@ import {
 import useAuth from '../hooks/useAuth';
 import useCart from '../hooks/useCart';
 import { useAlert } from '../hooks/useAlert';
+import type { IProduct } from '../context/CartContext';
 
 // Types - matching your existing structure
 interface OrderItem {
-  product: {
-    _id: string;
-    name: string;
-    thumbnail: string;
-    price: number;
-    slug: string;
-  };
+  product: IProduct;
+  thumbnail: string;
   quantity: number;
   priceAtTimeOfOrder: number;
 }
@@ -88,15 +84,16 @@ const OrderItemCard = ({
 }) => {
   const handleProductClick = () => {
     if (item.product.slug) {
-      navigate(`/products/${item.product.slug}`);
+      navigate(`/product-details/${item.product.slug}`);
     }
   };
+  console.log('items:', item.product.slug);
 
   return (
     <div className="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-600">
       <div className="flex items-center gap-4">
         <img
-          src={item.product.thumbnail}
+          src={item.thumbnail}
           alt={item.product.name}
           className="h-16 w-16 cursor-pointer rounded-lg object-cover shadow-sm transition-opacity hover:opacity-80"
           onClick={handleProductClick}

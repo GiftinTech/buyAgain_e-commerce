@@ -40,7 +40,10 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<ProductListing />} />
           <Route path="/product-details/:id" element={<ProductDetailsPage />} />
-          <Route path="/products/:slug" element={<ProductDetailsPage />} />
+          <Route
+            path="/product-details/:slug"
+            element={<ProductDetailsPage />}
+          />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route element={<ProtectedRoute requiredRoles={['user', 'admin']} />}>

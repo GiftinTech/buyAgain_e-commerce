@@ -102,7 +102,7 @@ const Header = () => {
     <header className="relative z-40 bg-white dark:bg-black">
       {' '}
       {/* Top Row */}
-      <div className="flex items-center justify-between px-4 py-3 lg:px-8">
+      <div className="flex items-center justify-between px-2 py-3 sm:px-4 lg:px-8">
         <div className="flex items-center">
           {/* Menu button for medium/small screens */}
           <button
@@ -148,7 +148,7 @@ const Header = () => {
               {/* Added z-50 here */}
               {filteredSearches.map((item: string) => (
                 <button
-                  key={item} // Changed key to item
+                  key={item}
                   className="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -170,7 +170,7 @@ const Header = () => {
           {/* Dark mode toggle */}
           <button
             onClick={toggleTheme}
-            className="rounded-full p-2 hover:font-bold"
+            className="rounded-full hover:font-bold sm:p-2"
             title="Toggle theme"
             aria-label="Toggle dark mode"
           >
@@ -274,7 +274,7 @@ const Header = () => {
             {/* Added z-50 here */}
             {filteredSearches.map((item: string) => (
               <button
-                key={item} // Changed key to item
+                key={item}
                 className="flex w-full cursor-pointer items-center gap-2 rounded-md px-3 py-2 hover:bg-pink-50 dark:hover:bg-pink-900"
                 onMouseDown={(e) => {
                   e.preventDefault();
