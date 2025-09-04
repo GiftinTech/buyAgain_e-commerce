@@ -130,16 +130,16 @@ const MyOrders: React.FC = () => {
                         >
                           <div className="flex items-center gap-3">
                             {typeof item.product === 'object' &&
-                              item.product.thumbnail && (
+                              item.product?.thumbnail && (
                                 <img
-                                  src={item.product.thumbnail}
+                                  src={item.product?.thumbnail}
                                   alt="product"
                                   className="h-12 w-12 rounded-md object-cover"
                                 />
                               )}
                             <p className="font-medium">
                               {typeof item.product === 'object'
-                                ? item.product.name
+                                ? item.product?.name
                                 : 'Product Name Unavailable'}
                               <span className="ml-2 text-sm text-gray-500">
                                 x{item.quantity}

@@ -67,7 +67,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // Limit requests from same API
 const limiter = rateLimit({
-  max: process.env.NODE_ENV === 'production' ? 50 : 1000, // remove in prod
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // remove in prod
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour!',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers

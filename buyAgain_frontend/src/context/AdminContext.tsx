@@ -46,7 +46,7 @@ interface ShippingAddress {
 }
 
 export interface OrderItem {
-  product: string | Partial<IProduct>;
+  product: string | Pick<IProduct, 'name' | 'thumbnail'>;
   quantity: number;
   priceAtTimeOfOrder: number;
 }
